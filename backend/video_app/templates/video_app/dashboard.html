@@ -1,0 +1,731 @@
+{% extends 'video_app/base.html' %}
+
+{% block title %}Dashboard – Stackly{% endblock %}
+
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+  /* ── Page header ── */
+  .page-header { border-bottom: 1px solid var(--silk); background: white; }
+
+  .page-header-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 36px 48px 28px;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--stone);
+    letter-spacing: 0.04em; margin-bottom: 14px;
+  }
+
+  .breadcrumb a { color: var(--stone); text-decoration: none; transition: color 0.2s; }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb-sep { color: var(--mist); }
+
+  .page-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    background: var(--gold-pale); border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 100px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #8a6e28; margin-bottom: 12px;
+  }
+
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34px; font-weight: 300;
+    color: var(--charcoal); line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .page-title strong { font-weight: 600; }
+  .page-sub { font-size: 14px; color: var(--stone); margin-top: 8px; font-weight: 300; }
+
+  /* ── Pipeline Stepper ── */
+  .pipeline-strip {
+    background: white;
+    border-bottom: 1px solid var(--silk);
+  }
+
+  .pipeline-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 20px 48px;
+    display: flex; align-items: center; gap: 0;
+  }
+
+  .pipeline-step {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1;
+    position: relative;
+  }
+
+  .pipeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%; transform: translateY(-50%);
+    width: calc(100% - 120px);
+    height: 1px;
+    background: var(--silk);
+    left: 120px;
+    z-index: 0;
+  }
+
+  .pipeline-step.done:not(:last-child)::after {
+    background: linear-gradient(90deg, var(--gold), rgba(201,168,76,0.2));
+  }
+
+  .step-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px; font-weight: 700;
+    transition: all 0.3s;
+    position: relative; z-index: 1;
+  }
+
+  .pipeline-step.done .step-icon {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: white;
+    box-shadow: 0 2px 8px rgba(201,168,76,0.35);
+  }
+
+  .pipeline-step.active .step-icon {
+    background: var(--charcoal);
+    color: var(--gold);
+    box-shadow: 0 2px 12px rgba(26,25,22,0.25);
+  }
+
+  .pipeline-step.queue .step-icon {
+    background: var(--pearl);
+    color: var(--mist);
+    border: 1px solid var(--silk);
+  }
+
+  .step-icon svg { width: 14px; height: 14px; }
+
+  .step-info { flex: 1; min-width: 0; }
+
+  .step-name {
+    font-size: 12px; font-weight: 600;
+    color: var(--ink); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .pipeline-step.queue .step-name { color: var(--mist); }
+
+  .step-state {
+    font-size: 10.5px; color: var(--stone); font-weight: 300;
+  }
+
+  .pipeline-step.active .step-state { color: var(--gold); font-weight: 500; }
+  .pipeline-step.queue .step-state  { color: var(--mist); }
+
+  /* ── Layout ── */
+  .dashboard-wrap {
+    max-width: 1200px; margin: 0 auto;
+    padding: 40px 48px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ── Form card ── */
+  .form-card {
+    background: white; border-radius: 14px;
+    border: 1px solid var(--silk); box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: fade-up 0.5s ease both;
+  }
+
+  .form-card-header {
+    padding: 24px 32px; border-bottom: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--pearl); position: relative;
+  }
+
+  .form-card-header::after {
+    content: ''; position: absolute; bottom: 0; left: 32px; right: 32px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    opacity: 0.4;
+  }
+
+  .stage-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--stone); }
+  .stage-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--charcoal); margin-top: 4px; }
+
+  .stage-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: var(--charcoal); border-radius: 100px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; color: var(--gold);
+  }
+
+  .stage-pill-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
+
+  .form-card-body { padding: 32px; }
+
+  /* ── Fields ── */
+  .field-group { margin-bottom: 24px; }
+
+  .field-label {
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; display: block;
+  }
+
+  .field-label span {
+    font-weight: 400; letter-spacing: 0; text-transform: none;
+    color: var(--mist); font-size: 11px; margin-left: 6px;
+  }
+
+  textarea, select {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: var(--ink);
+    background: var(--cream); border: 1px solid var(--silk);
+    border-radius: 8px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  textarea { padding: 14px 16px; resize: none; line-height: 1.65; }
+
+  textarea:focus, select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    background: white;
+  }
+
+  textarea::placeholder { color: var(--mist); }
+  .textarea-main       { height: 130px; }
+  .textarea-translated { height: 110px; color: var(--stone); }
+
+  select {
+    padding: 12px 16px; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6760' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+
+  .char-count { display: flex; justify-content: flex-end; font-size: 11px; color: var(--mist); margin-top: 6px; }
+
+  .field-divider {
+    display: flex; align-items: center; gap: 14px;
+    margin: 28px 0;
+    color: var(--mist); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .field-divider::before, .field-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--silk);
+  }
+
+  /* ── Buttons ── */
+  .form-actions { display: flex; gap: 14px; margin-top: 32px; }
+
+  .btn-translate {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 22px;
+    background: var(--pearl); color: var(--ink);
+    font-size: 13.5px; font-weight: 500;
+    border-radius: 8px; border: 1px solid var(--silk);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; letter-spacing: 0.02em;
+  }
+
+  .btn-translate svg { width: 15px; height: 15px; color: var(--gold); }
+
+  .btn-translate:hover {
+    background: white; border-color: var(--gold);
+    color: var(--charcoal); box-shadow: 0 4px 16px rgba(201,168,76,0.15);
+  }
+
+  .btn-generate {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 13px 24px;
+    background: var(--charcoal); color: var(--cream);
+    font-size: 13.5px; font-weight: 500;
+    border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.25s; letter-spacing: 0.04em;
+    position: relative; overflow: hidden;
+  }
+
+  .btn-generate::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    opacity: 0; transition: opacity 0.25s;
+  }
+
+  .btn-generate:hover::before { opacity: 1; }
+  .btn-generate:hover { color: var(--charcoal); box-shadow: 0 8px 28px rgba(201,168,76,0.35); transform: translateY(-1px); }
+  .btn-generate span, .btn-generate svg { position: relative; z-index: 1; }
+  .btn-generate svg { width: 16px; height: 16px; }
+
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  .info-card {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--silk); padding: 22px;
+    box-shadow: var(--shadow-soft);
+    animation: fade-up 0.5s 0.1s ease both;
+  }
+
+  .info-card-title {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--stone); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .info-card-title::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
+
+  .lang-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .lang-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 7px;
+    background: var(--cream); border: 1px solid var(--silk);
+    font-size: 13px; color: var(--ink);
+  }
+
+  .lang-flag { font-size: 18px; line-height: 1; }
+  .lang-name { font-weight: 500; flex: 1; }
+  .lang-code { font-size: 10.5px; color: var(--mist); letter-spacing: 0.06em; font-weight: 600; }
+
+  .tip-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .tip-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--stone); line-height: 1.5; }
+
+  .tip-num {
+    width: 20px; height: 20px; flex-shrink: 0;
+    background: var(--gold-pale); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #8a6e28;
+  }
+
+  /* ── Recent generations ── */
+  .recent-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .recent-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    background: var(--cream); border: 1px solid var(--silk);
+    text-decoration: none; transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .recent-item:hover {
+    background: white; border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(201,168,76,0.15);
+    transform: translateX(2px);
+  }
+
+  .recent-thumb {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: 6px; overflow: hidden;
+    background: var(--pearl);
+    border: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .recent-thumb svg { width: 16px; height: 16px; color: var(--mist); }
+
+  .recent-info { flex: 1; min-width: 0; }
+
+  .recent-name {
+    font-size: 12.5px; font-weight: 600;
+    color: var(--ink); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .recent-time { font-size: 11px; color: var(--mist); margin-top: 2px; }
+
+  .recent-play {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: var(--gold-pale);
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.25);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .recent-item:hover .recent-play {
+    background: var(--gold); border-color: var(--gold);
+  }
+
+  .recent-play svg { width: 10px; height: 10px; color: var(--gold); }
+  .recent-item:hover .recent-play svg { color: white; }
+
+  .recent-empty {
+    text-align: center; padding: 20px;
+    font-size: 12.5px; color: var(--mist);
+    font-weight: 300; line-height: 1.6;
+  }
+
+  /* ── Latest video card ── */
+  .latest-video-card {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--silk); overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    animation: fade-up 0.5s 0.2s ease both;
+  }
+
+  .latest-video-header {
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--silk);
+    background: var(--pearl);
+  }
+
+  .latest-video-title {
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--stone);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .latest-video-title::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
+
+  .latest-video-meta { font-size: 11px; color: var(--mist); }
+
+  .latest-video-player {
+    aspect-ratio: 16/9;
+    background: var(--charcoal);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+
+  .latest-video-player video {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+
+  .latest-placeholder {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 10px;
+    color: rgba(250,249,247,0.35);
+    font-size: 12px; font-weight: 300;
+    letter-spacing: 0.04em; padding: 20px;
+    text-align: center;
+  }
+
+  .latest-placeholder svg { width: 32px; height: 32px; opacity: 0.4; }
+
+  .latest-video-actions {
+    display: flex; gap: 1px; border-top: 1px solid var(--silk);
+  }
+
+  .latest-action {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 8px; font-size: 12px; font-weight: 500;
+    color: var(--stone); text-decoration: none;
+    background: var(--pearl); transition: all 0.2s;
+    cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
+  }
+
+  .latest-action:hover { background: white; color: var(--gold); }
+  .latest-action svg { width: 13px; height: 13px; }
+  .latest-action + .latest-action { border-left: 1px solid var(--silk); }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 960px) {
+    .dashboard-wrap { grid-template-columns: 1fr; padding: 24px; }
+    .page-header-inner { padding: 24px; }
+    .pipeline-inner { padding: 14px 24px; overflow-x: auto; }
+  }
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb">
+      <a href="{% url 'home' %}">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Dashboard</span>
+    </div>
+    <div class="page-badge">TTS Pipeline</div>
+    <h1 class="page-title">Generate <strong>AI Audio</strong></h1>
+    <p class="page-sub">Enter your script, translate, and produce professional-grade speech in seconds.</p>
+  </div>
+</div>
+
+<!-- Pipeline stepper -->
+<div class="pipeline-strip">
+  <div class="pipeline-inner">
+
+    <div class="pipeline-step done">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">Script</div>
+        <div class="step-state">Complete</div>
+      </div>
+    </div>
+
+    <div class="pipeline-step active">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">Translate</div>
+        <div class="step-state">Active</div>
+      </div>
+    </div>
+
+    <div class="pipeline-step active">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">Audio</div>
+        <div class="step-state">Active</div>
+      </div>
+    </div>
+
+    <div class="pipeline-step queue">
+      <div class="step-icon">4</div>
+      <div class="step-info">
+        <div class="step-name">Avatar</div>
+        <div class="step-state">Queued</div>
+      </div>
+    </div>
+
+    <div class="pipeline-step queue">
+      <div class="step-icon">5</div>
+      <div class="step-info">
+        <div class="step-name">Video</div>
+        <div class="step-state">Queued</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="dashboard-wrap">
+
+  <!-- Main form -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <div>
+        <div class="stage-label">Current Stage</div>
+        <div class="stage-title">TTS Pipeline — Stage 1</div>
+      </div>
+      <div class="stage-pill">
+        <span class="stage-pill-dot"></span>
+        Active
+      </div>
+    </div>
+
+    <div class="form-card-body">
+      <form method="POST" action="{% url 'generate_audio' %}">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label class="field-label" for="inputText">
+            Script <span>Your original content</span>
+          </label>
+          <textarea
+            id="inputText" name="text"
+            class="textarea-main"
+            placeholder="Write or paste your script here…"
+            oninput="updateCount(this)"
+          ></textarea>
+          <div class="char-count"><span id="charCount">0</span> characters</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="language">Target Language</label>
+          <select id="language" name="language">
+            <option value="en">🇬🇧  English</option>
+            <option value="hi">🇮🇳  Hindi</option>
+            <option value="te">🏳  Telugu</option>
+            <option value="ta">🏳  Tamil</option>
+          </select>
+        </div>
+
+        <div class="field-divider">Translate first (optional)</div>
+
+        <div class="field-group">
+          <label class="field-label" for="translatedText">
+            Translated Script <span>Auto-filled after translation</span>
+          </label>
+          <textarea
+            id="translatedText" name="translated_text"
+            class="textarea-translated"
+            readonly
+            placeholder="Translation will appear here…"
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-translate" onclick="translateText()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+            Translate Script
+          </button>
+          <button type="submit" class="btn-generate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Generate Audio</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <!-- Languages -->
+    <div class="info-card">
+      <div class="info-card-title">Supported Languages</div>
+      <div class="lang-list">
+        <div class="lang-item"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span><span class="lang-code">EN</span></div>
+        <div class="lang-item"><span class="lang-flag">🇮🇳</span><span class="lang-name">Hindi</span><span class="lang-code">HI</span></div>
+        <div class="lang-item"><span class="lang-flag">🏳</span><span class="lang-name">Telugu</span><span class="lang-code">TE</span></div>
+        <div class="lang-item"><span class="lang-flag">🏳</span><span class="lang-name">Tamil</span><span class="lang-code">TA</span></div>
+      </div>
+    </div>
+
+    <!-- Latest Video Preview -->
+    <div class="latest-video-card">
+      <div class="latest-video-header">
+        <div class="latest-video-title">Latest Video</div>
+        {% if latest_video %}
+        <div class="latest-video-meta">{{ latest_video.created_at }}</div>
+        {% endif %}
+      </div>
+      <div class="latest-video-player">
+        {% if latest_video %}
+        <video controls preload="metadata">
+          <source src="{{ latest_video.file }}" type="video/mp4">
+        </video>
+        {% else %}
+        <div class="latest-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          No videos generated yet
+        </div>
+        {% endif %}
+      </div>
+      {% if latest_video %}
+      <div class="latest-video-actions">
+        <a href="{{ latest_video.file }}" download class="latest-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+        <button class="latest-action" onclick="navigator.share && navigator.share({url: '{{ latest_video.file }}'})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <button class="latest-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Delete
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Generations -->
+    <div class="info-card">
+      <div class="info-card-title">Recent Generations</div>
+      <div class="recent-list">
+        {% if videos %}
+          {% for video in videos|slice:":5" %}
+          <a href="{% url 'dashboard' %}" class="recent-item">
+            <div class="recent-thumb">
+              {% if video.thumbnail %}
+              <img src="{{ video.thumbnail }}" alt="{{ video.file }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              {% endif %}
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">{{ video.file }}</div>
+              <div class="recent-time">{{ video.created_at }}</div>
+            </div>
+            <div class="recent-play">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </a>
+          {% endfor %}
+        {% else %}
+          <!-- Demo placeholders -->
+          {% for item in "123" %}
+          <div class="recent-item">
+            <div class="recent-thumb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">Avatar_0{{ item }}.mp4</div>
+              <div class="recent-time">No videos yet</div>
+            </div>
+            <div class="recent-play">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="info-card">
+      <div class="info-card-title">Tips for best results</div>
+      <div class="tip-list">
+        <div class="tip-item"><div class="tip-num">1</div><span>Write naturally — avoid overly technical jargon for clearest speech synthesis.</span></div>
+        <div class="tip-item"><div class="tip-num">2</div><span>Translate first, then review before generating audio.</span></div>
+        <div class="tip-item"><div class="tip-num">3</div><span>Use punctuation to control pacing and pauses in voice output.</span></div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  function updateCount(el) {
+    document.getElementById('charCount').textContent = el.value.length;
+  }
+
+  function translateText() {
+    const text = document.getElementById("inputText").value;
+    const lang = document.getElementById("language").value;
+
+    if (text.trim() === "") { alert("Please enter a script first."); return; }
+
+    const btn = document.querySelector('.btn-translate');
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Translating…`;
+    btn.disabled = true;
+
+    fetch(`{% url 'translate' %}?text=${encodeURIComponent(text)}&lang=${lang}`)
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById("translatedText").value = data.translated_text;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Translated`;
+        btn.disabled = false;
+      })
+      .catch(() => {
+        btn.textContent = 'Translate Script';
+        btn.disabled = false;
+      });
+  }
+</script>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+{% endblock %}

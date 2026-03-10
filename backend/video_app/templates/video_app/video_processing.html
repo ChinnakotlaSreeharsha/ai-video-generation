@@ -1,0 +1,604 @@
+{% extends 'video_app/base.html' %}
+
+{% block title %}Your AI Video is Ready – Stackly{% endblock %}
+
+{% block extra_css %}
+  main {
+    padding: 56px 24px 80px;
+  }
+
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+    align-items: start;
+    animation: fade-up 0.5s ease both;
+  }
+
+  /* ── Success header (above grid) ── */
+  .page-header-row {
+    max-width: 1100px;
+    margin: 0 auto 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+
+  .success-indicator {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .success-ring {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06));
+    border: 1px solid rgba(34,197,94,0.25);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative;
+  }
+
+  .success-ring::before {
+    content: ''; position: absolute; inset: -5px;
+    border-radius: 50%;
+    border: 1px solid rgba(34,197,94,0.1);
+    animation: ring-pulse 2.5s ease infinite;
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50%       { transform: scale(1.08); opacity: 1; }
+  }
+
+  .success-ring svg { width: 22px; height: 22px; color: #22c55e; }
+  .success-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #22c55e; }
+  .success-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 300;
+    color: var(--charcoal); line-height: 1.2;
+    margin-top: 4px; letter-spacing: -0.01em;
+  }
+
+  .success-title strong { font-weight: 600; }
+
+  /* Pipeline complete strip */
+  .pipeline-complete {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px;
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    color: #16a34a; letter-spacing: 0.04em;
+  }
+
+  .pipeline-complete svg { width: 13px; height: 13px; }
+
+  /* ══════════ LEFT COLUMN ══════════ */
+
+  /* ── Video card ── */
+  .video-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--silk);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .video-card-top {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--silk);
+    background: var(--pearl);
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .video-card-top::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  }
+
+  .vc-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--charcoal); }
+  .vc-sub   { font-size: 12.5px; color: var(--stone); font-weight: 300; margin-top: 2px; }
+
+  .vc-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 100px;
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: #16a34a;
+  }
+
+  /* ── Video player ── */
+  .video-player-wrap {
+    background: #0d0d0c;
+    position: relative;
+    aspect-ratio: 16/9;
+  }
+
+  .video-player-wrap video {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* ── Action bar ── */
+  .action-bar {
+    display: flex; gap: 10px;
+    padding: 20px 28px;
+    border-top: 1px solid var(--silk);
+    flex-wrap: wrap;
+  }
+
+  .btn-download-video {
+    flex: 1; min-width: 140px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 13px 22px;
+    background: var(--charcoal); color: var(--cream);
+    font-size: 13.5px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    border-radius: 8px; text-decoration: none;
+    letter-spacing: 0.04em; transition: all 0.25s;
+    position: relative; overflow: hidden;
+  }
+
+  .btn-download-video::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    opacity: 0; transition: opacity 0.25s;
+  }
+
+  .btn-download-video:hover::before { opacity: 1; }
+  .btn-download-video:hover { color: var(--charcoal); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,0.35); }
+  .btn-download-video svg, .btn-download-video span { position: relative; z-index: 1; }
+  .btn-download-video svg { width: 15px; height: 15px; }
+
+  .btn-action {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 18px;
+    background: var(--pearl); color: var(--ink);
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    border-radius: 8px; border: 1px solid var(--silk);
+    text-decoration: none; transition: all 0.2s; letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+
+  .btn-action:hover { background: white; border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,168,76,0.15); }
+  .btn-action svg { width: 14px; height: 14px; }
+
+  /* ── Video meta ── */
+  .video-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    padding: 14px 28px;
+    border-top: 1px solid var(--silk);
+    background: var(--cream);
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .meta-value { font-size: 13px; font-weight: 500; color: var(--ink); }
+
+  /* ── Make another card ── */
+  .make-another {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--silk); padding: 20px 24px;
+    box-shadow: var(--shadow-soft);
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .ma-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--gold-pale); border-radius: 10px;
+    border: 1px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .ma-icon svg { width: 18px; height: 18px; color: var(--gold); }
+  .ma-text { flex: 1; font-size: 13px; color: var(--stone); font-weight: 300; line-height: 1.5; }
+  .ma-text strong { color: var(--ink); font-weight: 600; }
+
+  .btn-new {
+    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 18px;
+    background: var(--charcoal); color: var(--cream);
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    border-radius: 7px; text-decoration: none;
+    transition: all 0.2s; letter-spacing: 0.03em;
+    position: relative; overflow: hidden;
+  }
+
+  .btn-new::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    opacity: 0; transition: opacity 0.2s;
+  }
+
+  .btn-new:hover::before { opacity: 1; }
+  .btn-new:hover { color: var(--charcoal); }
+  .btn-new span, .btn-new svg { position: relative; z-index: 1; }
+  .btn-new svg { width: 13px; height: 13px; }
+
+  /* ══════════ RIGHT COLUMN — SIDEBAR ══════════ */
+
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── Info card base ── */
+  .info-card {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--silk); overflow: hidden;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .info-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--silk);
+    background: var(--pearl);
+  }
+
+  .info-card-title {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--stone);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .info-card-title::before { content: ''; width: 14px; height: 1px; background: var(--gold); }
+
+  .info-card-body { padding: 16px 18px; }
+
+  /* ── History list ── */
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .history-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 9px;
+    background: var(--cream); border: 1px solid var(--silk);
+    text-decoration: none; transition: all 0.2s;
+    cursor: pointer; position: relative;
+  }
+
+  .history-item.current {
+    background: var(--gold-pale);
+    border-color: rgba(201,168,76,0.4);
+  }
+
+  .history-item:hover:not(.current) {
+    background: white; border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(201,168,76,0.15);
+    transform: translateX(2px);
+  }
+
+  .history-thumb {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: 7px; overflow: hidden;
+    background: var(--pearl);
+    border: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .history-thumb video,
+  .history-thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+
+  .history-thumb svg { width: 18px; height: 18px; color: var(--mist); }
+
+  .history-thumb-overlay {
+    position: absolute; inset: 0;
+    background: rgba(26,25,22,0.35);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+    border-radius: 6px;
+  }
+
+  .history-item:hover .history-thumb-overlay { opacity: 1; }
+  .history-thumb-overlay svg { width: 14px; height: 14px; color: white; }
+
+  .history-info { flex: 1; min-width: 0; }
+
+  .history-name {
+    font-size: 12.5px; font-weight: 600;
+    color: var(--ink); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .history-item.current .history-name { color: #6b4f1a; }
+
+  .history-time { font-size: 11px; color: var(--mist); margin-top: 2px; }
+
+  .history-now {
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: #8a6e28;
+    padding: 2px 7px; border-radius: 3px;
+    background: rgba(201,168,76,0.2);
+  }
+
+  .history-dl {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: white;
+    border-radius: 50%; border: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--stone); text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .history-dl:hover { background: var(--gold); border-color: var(--gold); color: white; }
+  .history-dl svg { width: 11px; height: 11px; }
+
+  .history-empty {
+    padding: 20px; text-align: center;
+    font-size: 12.5px; color: var(--mist);
+    font-weight: 300; line-height: 1.6;
+  }
+
+  /* ── Stats card ── */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-item {
+    padding: 12px 14px;
+    background: var(--cream); border-radius: 8px;
+    border: 1px solid var(--silk);
+  }
+
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--charcoal); line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label { font-size: 11px; color: var(--stone); font-weight: 300; }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 960px) {
+    main { padding: 32px 16px 60px; }
+    .page-wrap { grid-template-columns: 1fr; }
+    .page-header-row { margin-bottom: 24px; }
+  }
+
+  @media (max-width: 600px) {
+    .action-bar { flex-direction: column; }
+    .btn-download-video { width: 100%; }
+  }
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Page header row -->
+<div class="page-header-row">
+  <div class="success-indicator">
+    <div class="success-ring">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="success-label">Pipeline Complete</div>
+      <h1 class="success-title">Your AI Video is <strong>Ready</strong></h1>
+    </div>
+  </div>
+
+  <div class="pipeline-complete">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    All 4 stages complete
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- ══ LEFT — video + actions ══ -->
+  <div>
+
+    <div class="video-card">
+      <div class="video-card-top">
+        <div>
+          <div class="vc-title">Generated AI Video</div>
+          <div class="vc-sub">Wav2Lip Pipeline — Stage 2 output</div>
+        </div>
+        <div class="vc-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Stage 2 Done
+        </div>
+      </div>
+
+      <!-- Video player -->
+      <div class="video-player-wrap">
+        <video controls preload="metadata">
+          <source src="{{ video_path }}" type="video/mp4">
+          Your browser does not support the video element.
+        </video>
+      </div>
+
+      <!-- Download / share / new -->
+      <div class="action-bar">
+        <a href="{{ video_path }}" download class="btn-download-video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download Video</span>
+        </a>
+        <a href="{{ audio_path }}" download class="btn-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          Audio
+        </a>
+        <button class="btn-action" onclick="shareVideo('{{ video_path }}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+
+      <div class="video-meta">
+        <div class="meta-item"><span class="meta-label">Format</span><span class="meta-value">MP4 H.264</span></div>
+        <div class="meta-item"><span class="meta-label">Audio</span><span class="meta-value">MP3 Synced</span></div>
+        <div class="meta-item"><span class="meta-label">Model</span><span class="meta-value">Wav2Lip</span></div>
+        <div class="meta-item"><span class="meta-label">Avatar</span><span class="meta-value">{{ avatar }}</span></div>
+      </div>
+    </div>
+
+    <!-- Make another -->
+    <div class="make-another">
+      <div class="ma-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      </div>
+      <div class="ma-text">
+        <strong>Make another video</strong> — go back to the dashboard to write a new script and start the pipeline again.
+      </div>
+      <a href="{% url 'dashboard' %}" class="btn-new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>New Video</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT — sidebar ══ -->
+  <aside class="sidebar">
+
+    <!-- Generation history -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-title">Generation History</div>
+      </div>
+      <div class="info-card-body">
+        <div class="history-list">
+
+          <!-- Current video (always shown) -->
+          <div class="history-item current">
+            <div class="history-thumb">
+              <video preload="none" muted>
+                <source src="{{ video_path }}" type="video/mp4">
+              </video>
+              <div class="history-thumb-overlay">
+                <svg viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+            </div>
+            <div class="history-info">
+              <div class="history-name">{{ avatar }}</div>
+              <div class="history-time">Just now</div>
+            </div>
+            <span class="history-now">New</span>
+          </div>
+
+          <!-- Previous videos from context -->
+          {% if videos %}
+            {% for video in videos %}
+            <a href="{{ video.url }}" class="history-item">
+              <div class="history-thumb">
+                {% if video.thumbnail %}
+                <img src="{{ video.thumbnail }}" alt="{{ video.file }}">
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                {% endif %}
+                <div class="history-thumb-overlay">
+                  <svg viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+              </div>
+              <div class="history-info">
+                <div class="history-name">{{ video.file }}</div>
+                <div class="history-time">{{ video.created_at }}</div>
+              </div>
+              <a href="{{ video.url }}" download class="history-dl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </a>
+            </a>
+            {% endfor %}
+          {% else %}
+            <!-- Placeholder rows -->
+            <div class="history-item">
+              <div class="history-thumb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </div>
+              <div class="history-info">
+                <div class="history-name" style="color:var(--mist)">No previous videos</div>
+                <div class="history-time">Generate more to see history</div>
+              </div>
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-title">Session Stats</div>
+      </div>
+      <div class="info-card-body">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ total_videos|default:"1" }}</div>
+            <div class="stat-label">Videos generated</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Languages available</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Pipeline stages</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">✓</div>
+            <div class="stat-label">Lip-sync active</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Try new avatar -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-title">Try Different Avatar</div>
+      </div>
+      <div class="info-card-body" style="padding:14px 18px">
+        <p style="font-size:12.5px;color:var(--stone);font-weight:300;line-height:1.6;margin-bottom:14px;">
+          Keep your audio and generate a new video with a different avatar face.
+        </p>
+        <a href="{% url 'upload_avatar' %}" style="
+          display:flex; align-items:center; justify-content:center; gap:8px;
+          padding:11px 18px;
+          background:var(--pearl); color:var(--ink);
+          font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif;
+          border-radius:8px; border:1px solid var(--silk);
+          text-decoration:none; transition:all 0.2s;
+        " onmouseover="this.style.borderColor='var(--gold)';this.style.background='white'"
+           onmouseout="this.style.borderColor='var(--silk)';this.style.background='var(--pearl)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+          Change Avatar
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  function shareVideo(url) {
+    if (navigator.share) {
+      navigator.share({ title: 'My AI Video – Stackly', url: url })
+        .catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.origin + url)
+        .then(() => alert('Video link copied to clipboard!'))
+        .catch(() => {});
+    }
+  }
+</script>
+{% endblock %}

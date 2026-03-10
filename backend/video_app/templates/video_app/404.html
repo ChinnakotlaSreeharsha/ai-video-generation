@@ -1,0 +1,364 @@
+{% extends 'video_app/base.html' %}
+
+{% block title %}404 – Under Development · Stackly{% endblock %}
+
+{% block extra_css %}
+
+  main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    min-height: calc(100vh - 68px - 160px);
+  }
+
+  .error-wrap {
+    width: 100%;
+    max-width: 620px;
+    text-align: center;
+    animation: fade-up 0.6s ease both;
+  }
+
+  .error-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(100px, 18vw, 160px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: transparent;
+    background: linear-gradient(135deg, var(--silk) 0%, var(--mist) 50%, var(--silk) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    user-select: none;
+    position: relative;
+    display: inline-block;
+  }
+
+  .error-number::after {
+    content: '404';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0.18;
+    transform: translate(3px, 4px);
+    z-index: -1;
+  }
+
+  .error-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: var(--gold-pale);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a6e28;
+    margin-bottom: 24px;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: blink 1.5s ease infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+  .error-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 300;
+    color: var(--charcoal);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .error-title strong { font-weight: 600; }
+
+  .error-desc {
+    font-size: 15px;
+    color: var(--stone);
+    line-height: 1.75;
+    font-weight: 300;
+    max-width: 440px;
+    margin: 0 auto 40px;
+  }
+
+  .build-card {
+    background: white;
+    border-radius: 14px;
+    border: 1px solid var(--silk);
+    box-shadow: var(--shadow-md);
+    padding: 28px 32px;
+    margin-bottom: 36px;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .build-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  }
+
+  .build-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .build-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  .build-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(201,168,76,0.25);
+  }
+
+  .build-status-dot {
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: blink 1.2s ease infinite;
+  }
+
+  .build-items { display: flex; flex-direction: column; gap: 12px; }
+
+  .build-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--stone);
+  }
+
+  .build-icon {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .build-icon.done   { background: rgba(34,197,94,0.1); }
+  .build-icon.active { background: var(--gold-pale); }
+  .build-icon.queue  { background: var(--pearl); }
+
+  .build-icon.done   svg { color: #22c55e; width: 13px; height: 13px; }
+  .build-icon.active svg { color: var(--gold); width: 13px; height: 13px; }
+  .build-icon.queue  svg { color: var(--mist); width: 13px; height: 13px; }
+
+  .build-item-text { flex: 1; }
+  .build-item-text span { font-weight: 600; color: var(--ink); }
+
+  .build-item-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+
+  .tag-done   { background: rgba(34,197,94,0.1); color: #16a34a; }
+  .tag-active { background: var(--gold-pale); color: #8a6e28; }
+  .tag-queue  { background: var(--pearl); color: var(--mist); }
+
+  .error-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 28px;
+    background: var(--charcoal);
+    color: var(--cream);
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-home::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    opacity: 0; transition: opacity 0.25s;
+  }
+
+  .btn-home:hover::before { opacity: 1; }
+  .btn-home:hover { color: var(--charcoal); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,0.35); }
+  .btn-home span, .btn-home svg { position: relative; z-index: 1; }
+  .btn-home svg { width: 15px; height: 15px; }
+
+  .btn-dashboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 22px;
+    background: var(--pearl);
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid var(--silk);
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-dashboard:hover { background: white; border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,168,76,0.15); }
+  .btn-dashboard svg { width: 14px; height: 14px; }
+
+  .error-team {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--mist);
+    letter-spacing: 0.05em;
+  }
+
+  .team-divider { width: 24px; height: 1px; background: var(--silk); }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .build-card { padding: 22px 20px; }
+    .build-item-tag { display: none; }
+  }
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="error-wrap">
+
+  <div class="error-number">404</div>
+
+  <div style="margin-top: 8px; margin-bottom: 20px;">
+    <div class="error-badge">
+      <span class="badge-dot"></span>
+      Under Active Development
+    </div>
+  </div>
+
+  <h1 class="error-title">
+    This page is being<br>
+    <strong>built by the ML Team</strong>
+  </h1>
+
+  <p class="error-desc">
+    Our engineers are hard at work crafting this feature.<br>
+    It will be live very soon — check back shortly.
+  </p>
+
+  <div class="build-card">
+    <div class="build-header">
+      <div class="build-label">ML Team — Build Progress</div>
+      <div class="build-status">
+        <span class="build-status-dot"></span>
+        In Progress
+      </div>
+    </div>
+
+    <div class="build-items">
+
+      <div class="build-item">
+        <div class="build-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="build-item-text"><span>TTS Pipeline</span> — Stage 1 audio generation</div>
+        <span class="build-item-tag tag-done">Done</span>
+      </div>
+
+      <div class="build-item">
+        <div class="build-icon done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="build-item-text"><span>Multilingual Translation</span> — 4 languages supported</div>
+        <span class="build-item-tag tag-done">Done</span>
+      </div>
+
+      <div class="build-item">
+        <div class="build-icon active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div class="build-item-text"><span>AI Video Generation</span> — Avatar sync module</div>
+        <span class="build-item-tag tag-active">Building</span>
+      </div>
+
+      <div class="build-item">
+        <div class="build-icon queue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="build-item-text"><span>This Page</span> — Coming very soon</div>
+        <span class="build-item-tag tag-queue">Queue</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="error-actions">
+    <a href="{% url 'home' %}" class="btn-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Go to Home</span>
+    </a>
+    <a href="{% url 'dashboard' %}" class="btn-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Open Dashboard
+    </a>
+  </div>
+
+  <div class="error-team">
+    <span class="team-divider"></span>
+    ML Team · Stackly AI Video Platform
+    <span class="team-divider"></span>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Stackly – AI Video Generator{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:       #faf9f7;
+    --pearl:       #f3f1ed;
+    --silk:        #e8e4dd;
+    --mist:        #d4cfc6;
+    --charcoal:    #1a1916;
+    --ink:         #2d2b27;
+    --stone:       #6b6760;
+    --gold:        #c9a84c;
+    --gold-light:  #e8c96a;
+    --gold-pale:   #f7f0de;
+    --shadow-soft: 0 4px 32px rgba(26,25,22,0.07);
+    --shadow-md:   0 8px 48px rgba(26,25,22,0.10);
+    --shadow-lg:   0 20px 80px rgba(26,25,22,0.13);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 10% 0%, rgba(201,168,76,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 90% 100%, rgba(201,168,76,0.05) 0%, transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══════════════ HEADER ══════════════ */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250,249,247,0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--silk);
+    box-shadow: 0 1px 0 rgba(201,168,76,0.15), var(--shadow-soft);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--charcoal) 0%, #3a3834 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(26,25,22,0.2);
+    flex-shrink: 0;
+  }
+
+  .logo-mark::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 6px;
+    border: 1px solid rgba(201,168,76,0.35);
+  }
+
+  .logo-mark svg { width: 18px; height: 18px; }
+
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--charcoal);
+    line-height: 1;
+  }
+
+  .logo-text span { color: var(--gold); }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .nav-link {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--stone);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+    position: relative;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--gold);
+    transition: width 0.25s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link.active { color: var(--charcoal); }
+  .nav-link:hover::after,
+  .nav-link.active::after { width: 100%; }
+
+  .header-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 22px;
+    background: var(--charcoal);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border-radius: 6px;
+    text-decoration: none;
+    border: 1px solid var(--charcoal);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+
+  .header-cta:hover {
+    background: var(--gold);
+    color: var(--charcoal);
+    border-color: var(--gold);
+    box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+  }
+
+  /* ══════════════ MAIN ══════════════ */
+  main {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ══════════════ FOOTER ══════════════ */
+  .site-footer {
+    background: var(--charcoal);
+    color: rgba(250,249,247,0.5);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 48px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .footer-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: rgba(201,168,76,0.15);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(201,168,76,0.25);
+  }
+
+  .footer-logo-mark svg { width: 16px; height: 16px; }
+
+  .footer-logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+  }
+
+  .footer-logo-text span { color: var(--gold); }
+
+  .footer-tagline {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: rgba(250,249,247,0.35);
+    margin-top: 8px;
+    padding-left: 42px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 28px;
+  }
+
+  .footer-links a {
+    font-size: 12.5px;
+    color: rgba(250,249,247,0.45);
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--gold); }
+
+  .footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 48px 28px;
+    font-size: 11.5px;
+    color: rgba(250,249,247,0.25);
+    letter-spacing: 0.03em;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ══════════════ PAGE STYLES (shared) ══════════════ */
+  {% block extra_css %}{% endblock %}
+
+  @media (max-width: 900px) {
+    .header-inner  { padding: 0 24px; }
+    .footer-inner  { padding: 40px 24px 24px; }
+    .footer-bottom { padding: 16px 24px 24px; flex-direction: column; gap: 8px; }
+  }
+</style>
+
+{% block head_extra %}{% endblock %}
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 6h16M4 10h16M4 14h10M4 18h7" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">Stack<span>ly</span></span>
+    </a>
+
+    <nav class="header-nav">
+      <a href="{% url 'home' %}"      class="nav-link {% block nav_home %}{% endblock %}">Home</a>
+      <a href="{% url 'dashboard' %}" class="nav-link {% block nav_dashboard %}{% endblock %}">Dashboard</a>
+      <a href="{% url 'dashboard' %}" class="header-cta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Start Creating
+      </a>
+    </nav>
+
+  </div>
+</header>
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <a href="{% url 'home' %}" class="footer-logo">
+        <div class="footer-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16M4 10h16M4 14h10M4 18h7" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="footer-logo-text">Stack<span>ly</span></span>
+      </a>
+      <div class="footer-tagline">AI Video Generation Platform</div>
+    </div>
+    <nav class="footer-links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/support/">Support</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2026 Stackly. All rights reserved.</span>
+    <span>Built with precision &amp; craft</span>
+  </div>
+</footer>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

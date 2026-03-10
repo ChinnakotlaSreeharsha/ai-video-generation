@@ -1,0 +1,24 @@
+# Virtual Environment
+env/
+venv/
+
+# Django
+*.sqlite3
+__pycache__/
+*.pyc
+
+# ML Models
+*.pth
+*.ckpt
+
+# Media files
+*.mp4
+*.wav
+*.png
+
+# Storage
+storage/output/
+storage/temp/
+
+# Logs
+logs/
