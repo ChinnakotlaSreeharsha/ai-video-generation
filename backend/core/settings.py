@@ -126,3 +126,65 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/outputs/'
 MEDIA_ROOT = BASE_DIR / 'outputs'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
+# ─────────────────────────────────────────────
+# Logging
+# ─────────────────────────────────────────────
+
+# Ensure the logs directory exists before the handler tries to open the file
+(BASE_DIR / "logs").mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} — {message}",
+            "style":  "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style":  "{",
+        },
+    },
+
+    "handlers": {
+        # Console (always on — visible in runserver and Docker logs)
+        "console": {
+            "class":     "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        # Rotating file log — keeps last 5 × 5 MB files
+        "file": {
+            "class":       "logging.handlers.RotatingFileHandler",
+            "filename":    BASE_DIR / "logs" / "video_app.log",
+            "maxBytes":    5 * 1024 * 1024,   # 5 MB
+            "backupCount": 5,
+            "formatter":   "verbose",
+            "encoding":    "utf-8",
+        },
+    },
+
+    "loggers": {
+        # Your app — INFO and above go to both console and file
+        "video_app": {
+            "handlers":  ["console", "file"],
+            "level":     "INFO",
+            "propagate": False,
+        },
+        # Quieten noisy Django internals; keep WARNING+ in console
+        "django": {
+            "handlers":  ["console"],
+            "level":     "WARNING",
+            "propagate": False,
+        },
+    },
+}
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

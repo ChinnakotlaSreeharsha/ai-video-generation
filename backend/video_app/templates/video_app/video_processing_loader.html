@@ -1,0 +1,1027 @@
+{% extends 'video_app/base.html' %}
+
+{% block title %}Generating Your AI Video – Stackly{% endblock %}
+
+{% block extra_css %}
+
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 68px - 130px);
+    padding: 48px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Ambient background orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    animation: orb-drift 8s ease-in-out infinite alternate;
+  }
+
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation-duration: 9s;
+  }
+
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    animation-duration: 11s;
+    animation-delay: -4s;
+  }
+
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(26,25,22,0.04) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-duration: 7s;
+    animation-delay: -2s;
+  }
+
+  @keyframes orb-drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(30px, 20px) scale(1.08); }
+  }
+
+  /* ── Main container ── */
+  .loader-wrap {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: entrance 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes entrance {
+    from { opacity: 0; transform: translateY(40px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── Central ring animation ── */
+  .ring-stage {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 40px;
+    flex-shrink: 0;
+  }
+
+  /* Outer rotating ring */
+  .ring-outer {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    background: conic-gradient(from 0deg, rgba(201,168,76,0.8), rgba(232,201,106,0.2), rgba(201,168,76,0), rgba(201,168,76,0.8)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    animation: spin-cw 2.4s linear infinite;
+  }
+
+  /* Middle counter-rotating ring */
+  .ring-mid {
+    position: absolute;
+    inset: 16px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: conic-gradient(from 180deg, rgba(201,168,76,0.5), transparent, rgba(201,168,76,0.5)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    animation: spin-ccw 3.2s linear infinite;
+  }
+
+  /* Inner pulsing core */
+  .ring-core {
+    position: absolute;
+    inset: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--charcoal) 0%, #3a3834 100%);
+    border: 1px solid rgba(201,168,76,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 0 0 0 rgba(201,168,76,0),
+      inset 0 1px 0 rgba(201,168,76,0.2),
+      0 8px 32px rgba(26,25,22,0.3);
+    animation: core-pulse 2.5s ease-in-out infinite;
+  }
+
+  .ring-core svg {
+    width: 26px;
+    height: 26px;
+    color: var(--gold);
+    animation: icon-breathe 2.5s ease-in-out infinite;
+  }
+
+  @keyframes spin-cw  { to { transform: rotate(360deg); } }
+  @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+
+  @keyframes core-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0), inset 0 1px 0 rgba(201,168,76,0.2), 0 8px 32px rgba(26,25,22,0.3); }
+    50%       { box-shadow: 0 0 0 12px rgba(201,168,76,0.08), inset 0 1px 0 rgba(201,168,76,0.3), 0 8px 32px rgba(26,25,22,0.3); }
+  }
+
+  @keyframes icon-breathe {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.1); }
+  }
+
+  /* Orbit dots */
+  .orbit-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    top: 50%; left: 50%;
+    transform-origin: 0 0;
+  }
+
+  .orbit-dot-1 {
+    animation: orbit-1 2.4s linear infinite;
+    box-shadow: 0 0 8px rgba(201,168,76,0.6);
+  }
+
+  .orbit-dot-2 {
+    width: 4px; height: 4px;
+    background: var(--gold-light);
+    opacity: 0.6;
+    animation: orbit-2 3.2s linear infinite;
+  }
+
+  @keyframes orbit-1 {
+    from { transform: translate(-3px, -3px) rotate(0deg) translateX(77px); }
+    to   { transform: translate(-3px, -3px) rotate(360deg) translateX(77px); }
+  }
+
+  @keyframes orbit-2 {
+    from { transform: translate(-2px, -2px) rotate(0deg) translateX(60px); }
+    to   { transform: translate(-2px, -2px) rotate(-360deg) translateX(60px); }
+  }
+
+  /* ── Status badge ── */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    background: var(--gold-pale);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a6e28;
+    margin-bottom: 24px;
+    animation: entrance 0.8s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .badge-pulse {
+    width: 7px; height: 7px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: badge-blink 1.4s ease infinite;
+  }
+
+  @keyframes badge-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* ── Headline ── */
+  .loader-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(30px, 5vw, 42px);
+    font-weight: 300;
+    color: var(--charcoal);
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+    animation: entrance 0.8s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .loader-title strong { font-weight: 600; }
+  .loader-title em     { font-style: italic; color: var(--gold); }
+
+  /* ── Rotating status line ── */
+  .status-line {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--stone);
+    margin-bottom: 44px;
+    height: 22px;
+    overflow: hidden;
+    position: relative;
+    animation: entrance 0.8s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .status-messages {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .status-msg {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .status-msg-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  /* ── Main pipeline card ── */
+  .pipeline-card {
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    border: 1px solid var(--silk);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+    animation: entrance 0.8s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .pipeline-card-top {
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--silk);
+    background: var(--pearl);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pipeline-card-top::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  }
+
+  .pc-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  .pc-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(201,168,76,0.2);
+    letter-spacing: 0.05em;
+  }
+
+  .pipeline-steps {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Each step row */
+  .step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    position: relative;
+  }
+
+  .step-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: -16px;
+    width: 1px;
+    background: var(--silk);
+    transition: background 0.4s;
+  }
+
+  .step-row.done::after { background: rgba(34,197,94,0.3); }
+  .step-row.active::after { background: linear-gradient(180deg, rgba(201,168,76,0.4), var(--silk)); }
+
+  /* The left icon column */
+  .step-icon-wrap {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.4s;
+  }
+
+  .step-icon-wrap.state-done {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+
+  .step-icon-wrap.state-active {
+    background: var(--gold-pale);
+    border: 1px solid rgba(201,168,76,0.3);
+    animation: step-active-pulse 2s ease infinite;
+  }
+
+  .step-icon-wrap.state-queue {
+    background: var(--pearl);
+    border: 1px solid var(--silk);
+  }
+
+  @keyframes step-active-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50%       { box-shadow: 0 0 0 5px rgba(201,168,76,0.12); }
+  }
+
+  .step-icon-wrap svg { width: 16px; height: 16px; }
+  .step-icon-wrap.state-done   svg { color: #22c55e; }
+  .step-icon-wrap.state-active svg { color: var(--gold); }
+  .step-icon-wrap.state-queue  svg { color: var(--mist); }
+
+  /* Spinner for active step */
+  .step-spinner {
+    position: absolute;
+    inset: -5px;
+    border-radius: 14px;
+    border: 1.5px solid transparent;
+    border-top-color: var(--gold);
+    border-right-color: rgba(201,168,76,0.3);
+    animation: step-spin 1.2s linear infinite;
+    display: none;
+  }
+
+  .state-active .step-spinner { display: block; }
+
+  @keyframes step-spin { to { transform: rotate(360deg); } }
+
+  /* Step content */
+  .step-content {
+    flex: 1;
+    padding: 8px 0 24px;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 3px;
+    transition: color 0.3s;
+  }
+
+  .step-row.state-queue .step-title { color: var(--mist); }
+
+  .step-desc {
+    font-size: 12.5px;
+    color: var(--stone);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .step-row.state-queue .step-desc { color: var(--silk); }
+
+  /* Step tag */
+  .step-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 9px;
+  }
+
+  .tag-done   { background: rgba(34,197,94,0.1);  color: #16a34a; }
+  .tag-active { background: var(--gold-pale);       color: #8a6e28; }
+  .tag-queue  { background: var(--pearl);           color: var(--mist); }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    width: 100%;
+    margin-bottom: 24px;
+    animation: entrance 0.8s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .progress-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  .progress-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--silk);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 100px;
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -2px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    box-shadow: 0 0 8px rgba(201,168,76,0.8);
+  }
+
+  /* Shimmer on track */
+  .progress-shimmer {
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    animation: shimmer 2s linear infinite;
+  }
+
+  @keyframes shimmer {
+    from { left: -60%; }
+    to   { left: 110%; }
+  }
+
+  /* ── Info chips row ── */
+  .info-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 32px;
+    animation: entrance 0.8s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: white;
+    border: 1px solid var(--silk);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--stone);
+    font-weight: 400;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .chip svg { width: 13px; height: 13px; color: var(--gold); flex-shrink: 0; }
+  .chip strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Tip card ── */
+  .tip-card {
+    width: 100%;
+    background: var(--charcoal);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    animation: entrance 0.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tip-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent);
+  }
+
+  .tip-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .tip-icon svg { width: 15px; height: 15px; color: var(--gold); }
+
+  .tip-text-wrap {}
+
+  .tip-eyebrow {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 5px;
+  }
+
+  .tip-text {
+    font-size: 12.5px;
+    color: rgba(250,249,247,0.6);
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 40px;
+  }
+
+  .tip-text strong { color: rgba(250,249,247,0.9); font-weight: 500; }
+
+  /* ── Particle canvas ── */
+  #particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+  }
+
+  @media (max-width: 640px) {
+    .pipeline-steps { padding: 20px; }
+    .info-chips { gap: 8px; }
+    .chip { font-size: 11px; padding: 7px 11px; }
+  }
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Particle canvas -->
+<canvas id="particles"></canvas>
+
+<div class="loader-wrap">
+
+  <!-- Central ring -->
+  <div class="ring-stage">
+    <div class="ring-outer"></div>
+    <div class="ring-mid"></div>
+    <div class="ring-core">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="23 7 16 12 23 17 23 7"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg>
+    </div>
+    <div class="orbit-dot orbit-dot-1"></div>
+    <div class="orbit-dot orbit-dot-2"></div>
+  </div>
+
+  <!-- Badge -->
+  <div class="status-badge">
+    <span class="badge-pulse"></span>
+    AI Pipeline Active
+  </div>
+
+  <!-- Title -->
+  <h1 class="loader-title">
+    Crafting your<br><em>AI video</em> with <strong>precision</strong>
+  </h1>
+
+  <!-- Rotating status messages -->
+  <div class="status-line">
+    <div class="status-messages" id="statusMessages">
+      <div class="status-msg"><span class="status-msg-dot"></span>Initialising Wav2Lip neural network…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Loading avatar face landmarks…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Aligning audio with facial geometry…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Rendering lip-sync frames…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Blending audio track into video…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Encoding final MP4 output…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Polishing video quality…</div>
+      <div class="status-msg"><span class="status-msg-dot"></span>Almost there — finalising…</div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label">Pipeline Progress</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+      <div class="progress-shimmer"></div>
+    </div>
+  </div>
+
+  <!-- Pipeline card -->
+  <div class="pipeline-card">
+    <div class="pipeline-card-top">
+      <div class="pc-label">Wav2Lip Pipeline — Stage 2</div>
+      <div class="pc-timer" id="timerDisplay">00:00</div>
+    </div>
+
+    <div class="pipeline-steps">
+
+      <div class="step-row done" id="step1">
+        <div class="step-icon-wrap state-done">
+          <div class="step-spinner"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+          <div class="step-title">TTS Audio Generated</div>
+          <div class="step-desc">High-quality audio synthesised and ready for sync</div>
+        </div>
+        <span class="step-tag tag-done">Done</span>
+      </div>
+
+      <div class="step-row done" id="step2">
+        <div class="step-icon-wrap state-done">
+          <div class="step-spinner"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Avatar Uploaded</div>
+          <div class="step-desc">Face image accepted and validated for processing</div>
+        </div>
+        <span class="step-tag tag-done">Done</span>
+      </div>
+
+      <div class="step-row active" id="step3">
+        <div class="step-icon-wrap state-active">
+          <div class="step-spinner"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Lip-Sync Rendering</div>
+          <div class="step-desc">Neural network mapping audio to facial movements frame-by-frame</div>
+        </div>
+        <span class="step-tag tag-active">Running</span>
+      </div>
+
+      <div class="step-row" id="step4">
+        <div class="step-icon-wrap state-queue">
+          <div class="step-spinner"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Video Encoding</div>
+          <div class="step-desc">Compiling rendered frames into final MP4 with synced audio</div>
+        </div>
+        <span class="step-tag tag-queue">Queued</span>
+      </div>
+
+      <div class="step-row" id="step5">
+        <div class="step-icon-wrap state-queue">
+          <div class="step-spinner"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Ready for Download</div>
+          <div class="step-desc">Your video will be available in the results page</div>
+        </div>
+        <span class="step-tag tag-queue">Queued</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Info chips -->
+  <div class="info-chips">
+    <div class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+      <span>Audio: <strong>{{ language|upper|default:"EN" }}</strong></span>
+    </div>
+    <div class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      <span>Avatar: <strong>{{ avatar|default:"Uploaded" }}</strong></span>
+    </div>
+    <div class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span>Model: <strong>Wav2Lip</strong></span>
+    </div>
+    <div class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Quality: <strong>HD</strong></span>
+    </div>
+  </div>
+
+  <!-- Tip card -->
+  <div class="tip-card">
+    <div class="tip-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="tip-text-wrap">
+      <div class="tip-eyebrow">Did you know</div>
+      <div class="tip-text" id="tipText">
+        <strong>Wav2Lip</strong> uses a dedicated lip-sync discriminator trained on hundreds of hours of speech video to achieve near-perfect sync accuracy.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ═══════════════════════════════════════════
+   PARTICLE SYSTEM
+═══════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.4,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -Math.random() * 0.5 - 0.2,
+      alpha: Math.random() * 0.4 + 0.1,
+      life: 1,
+      decay: Math.random() * 0.003 + 0.001
+    };
+  }
+
+  for (let i = 0; i < 60; i++) particles.push(createParticle());
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach((p, i) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+
+      if (p.life <= 0 || p.y < -10) {
+        particles[i] = createParticle();
+        particles[i].y = H + 5;
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(201,168,76,${p.alpha * p.life})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  draw();
+})();
+
+
+/* ═══════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════ */
+let elapsed = 0;
+const timerEl = document.getElementById('timerDisplay');
+
+setInterval(() => {
+  elapsed++;
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  timerEl.textContent = `${m}:${s}`;
+}, 1000);
+
+
+/* ═══════════════════════════════════════════
+   ROTATING STATUS MESSAGES
+═══════════════════════════════════════════ */
+let msgIndex = 0;
+const msgContainer = document.getElementById('statusMessages');
+const msgCount = msgContainer.children.length;
+
+setInterval(() => {
+  msgIndex = (msgIndex + 1) % msgCount;
+  msgContainer.style.transform = `translateY(-${msgIndex * 22}px)`;
+}, 2800);
+
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR — smooth animated increment
+   Simulates realistic pipeline progress:
+   fast start → plateau → final burst
+═══════════════════════════════════════════ */
+const fillEl = document.getElementById('progressFill');
+const pctEl  = document.getElementById('progressPct');
+let currentPct = 0;
+let targetPct  = 0;
+
+// Schedule progress milestones
+const milestones = [
+  { at: 800,  val: 15 },
+  { at: 2500, val: 28 },
+  { at: 5000, val: 42 },
+  { at: 9000, val: 58 },
+  { at: 14000, val: 72 },
+  { at: 20000, val: 83 },
+  { at: 28000, val: 91 },
+  { at: 38000, val: 96 },
+];
+
+milestones.forEach(m => {
+  setTimeout(() => { targetPct = m.val; }, m.at);
+});
+
+// Smooth fill animation
+setInterval(() => {
+  if (currentPct < targetPct) {
+    currentPct = Math.min(currentPct + 0.4, targetPct);
+    fillEl.style.width = currentPct + '%';
+    pctEl.textContent  = Math.round(currentPct) + '%';
+  }
+}, 60);
+
+
+/* ═══════════════════════════════════════════
+   STEP PROGRESSION
+   Transitions pipeline steps visually
+═══════════════════════════════════════════ */
+function activateStep(stepId, nextStepId) {
+  const step = document.getElementById(stepId);
+  const next = nextStepId ? document.getElementById(nextStepId) : null;
+
+  // Mark current as done
+  step.classList.remove('active');
+  step.classList.add('done');
+  const icon = step.querySelector('.step-icon-wrap');
+  icon.className = 'step-icon-wrap state-done';
+  icon.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  const tag = step.querySelector('.step-tag');
+  tag.className = 'step-tag tag-done';
+  tag.textContent = 'Done';
+
+  // Activate next
+  if (next) {
+    next.classList.add('active');
+    const ni = next.querySelector('.step-icon-wrap');
+    ni.className = 'step-icon-wrap state-active';
+    const nt = next.querySelector('.step-tag');
+    nt.className = 'step-tag tag-active';
+    nt.textContent = 'Running';
+  }
+}
+
+setTimeout(() => activateStep('step3', 'step4'), 12000);
+setTimeout(() => activateStep('step4', 'step5'), 26000);
+
+
+/* ═══════════════════════════════════════════
+   ROTATING TIPS
+═══════════════════════════════════════════ */
+const tips = [
+  '<strong>Wav2Lip</strong> uses a dedicated lip-sync discriminator trained on hundreds of hours of speech video to achieve near-perfect sync accuracy.',
+  'Stackly\'s pipeline processes up to <strong>30 frames per second</strong> of lip-synced avatar video for cinema-quality output.',
+  'The TTS engine supports <strong>4 languages</strong> — English, Hindi, Telugu and Tamil — with native-quality pronunciation.',
+  'For best results, use a <strong>clear front-facing photo</strong> with good lighting as your avatar image.',
+  'Your generated video is privately stored and accessible only to you — <strong>your data stays yours</strong>.',
+  'The Wav2Lip model was trained on <strong>LRS2 and LRS3</strong> datasets containing thousands of speaking faces for natural output.',
+];
+
+let tipIdx = 0;
+const tipEl = document.getElementById('tipText');
+
+setInterval(() => {
+  tipEl.style.opacity = '0';
+  tipEl.style.transform = 'translateY(6px)';
+  tipEl.style.transition = 'opacity 0.4s, transform 0.4s';
+
+  setTimeout(() => {
+    tipIdx = (tipIdx + 1) % tips.length;
+    tipEl.innerHTML = tips[tipIdx];
+    tipEl.style.opacity = '1';
+    tipEl.style.transform = 'translateY(0)';
+  }, 400);
+}, 6000);
+
+
+/* ═══════════════════════════════════════════
+   POLLING — checks Django /video-status/ every 3s
+   On done  → fill bar to 100%, then redirect
+   On error → show error message
+═══════════════════════════════════════════ */
+const JOB_ID   = "{{ job_id }}";
+const AUDIO_URL = "{{ audio_url }}";
+
+// Step 4 & 5 advance once we know we're close
+let step4Done = false;
+let step5Done = false;
+
+(function poll() {
+  setTimeout(async () => {
+    try {
+      const res  = await fetch(`/video-status/?job_id=${JOB_ID}`);
+      const data = await res.json();
+
+      if (data.status === "done" && data.video_url) {
+
+        // Advance remaining steps visually
+        if (!step4Done) { activateStep('step3', 'step4'); step4Done = true; }
+        setTimeout(() => {
+          if (!step5Done) { activateStep('step4', 'step5'); step5Done = true; }
+        }, 500);
+
+        // Fill bar to 100%
+        targetPct = 100;
+
+        // Update status message
+        const msgs = document.getElementById('statusMessages');
+        msgs.innerHTML = '<div class="status-msg"><span class="status-msg-dot"></span>Video ready — redirecting…</div>';
+        msgs.style.transform = 'translateY(0)';
+
+        // Redirect after short celebration delay
+        setTimeout(() => {
+          // Build the result page URL with video info as query params
+          const params = new URLSearchParams({
+            video_path: data.video_url,
+            audio_path: data.audio_url || AUDIO_URL,
+            avatar:     data.avatar    || "{{ avatar }}",
+          });
+          window.location.href = `/video-result/?${params}`;
+        }, 1200);
+
+      } else if (data.status === "error") {
+        // Show error state
+        document.querySelector('.loader-title').innerHTML =
+          'Something went <strong>wrong</strong>';
+        document.querySelector('.status-badge').innerHTML =
+          '<span style="color:#ef4444">● Pipeline Error</span>';
+        document.querySelector('.status-line').innerHTML =
+          `<div class="status-msg" style="color:#ef4444">${data.error || 'An unexpected error occurred.'}</div>`;
+
+      } else {
+        // Still running — poll again
+        poll();
+      }
+
+    } catch (e) {
+      // Network error — keep retrying silently
+      poll();
+    }
+  }, 3000);
+})();
+
+</script>
+{% endblock %}

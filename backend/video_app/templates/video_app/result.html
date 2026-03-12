@@ -252,6 +252,24 @@
 
   .chip svg { width: 11px; height: 11px; color: var(--gold); }
 
+  .next-footer {
+    display: flex; align-items: center; gap: 6px;
+    padding: 14px 28px; border-top: 1px solid var(--silk);
+    background: var(--pearl);
+  }
+  .next-footer-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 6px;
+    font-size: 12px; font-weight: 500; color: var(--stone);
+    text-decoration: none; transition: all .2s;
+    border: 1px solid transparent;
+  }
+  .next-footer-link svg { width: 13px; height: 13px; }
+  .next-footer-link:hover { color: var(--gold); background: white; border-color: rgba(201,168,76,.2); }
+  .next-footer-link + .next-footer-link::before {
+    content: '·'; color: var(--mist); margin-right: 6px;
+  }
+
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -262,6 +280,8 @@
     .result-actions { flex-direction: column; }
     .next-card-inner { flex-wrap: wrap; }
     .btn-continue { width: 100%; justify-content: center; }
+    .next-footer { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .next-footer-link + .next-footer-link::before { display: none; }
   }
 {% endblock %}
 
@@ -276,13 +296,13 @@
       <div class="pip-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <span class="pip-label">Script</span>
     </div>
+    <div class="stage-pip done">
+      <div class="pip-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <span class="pip-label">Avatar</span>
+    </div>
     <div class="stage-pip current">
       <div class="pip-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <span class="pip-label">Audio</span>
-    </div>
-    <div class="stage-pip queue">
-      <div class="pip-dot">3</div>
-      <span class="pip-label">Avatar</span>
     </div>
     <div class="stage-pip queue">
       <div class="pip-dot">4</div>
@@ -297,7 +317,7 @@
     </div>
     <div>
       <div class="success-label">Stage 1 complete</div>
-      <div class="success-desc">Audio ready — continue to upload your avatar and generate the video</div>
+      <div class="success-desc">Audio ready — listen to check it's correct, then generate your video below</div>
     </div>
   </div>
 
@@ -357,19 +377,44 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </div>
       <div class="next-content">
-        <div class="next-label">Next — Stage 2 of 4</div>
+        <div class="next-label">Step 3 of 3 — Happy with the audio?</div>
         <div class="next-title">Generate AI Video</div>
-        <div class="next-text">Upload a face image or video — Wav2Lip will lip-sync your audio to produce a talking-head video.</div>
+        <div class="next-text">
+          {% if avatar %}
+            Avatar selected: <strong>{{ avatar.name }}</strong>. Wav2Lip will lip-sync this audio to generate your talking-head video.
+          {% elif avatar_name %}
+            Avatar: <strong>{{ avatar_name }}</strong>. Wav2Lip will lip-sync this audio to generate your talking-head video.
+          {% else %}
+            Wav2Lip will lip-sync this audio to your avatar and produce the final video.
+          {% endif %}
+        </div>
       </div>
-      <a href="{% url 'upload_avatar' %}" class="btn-continue">
-        <span>Continue</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+      <form method="POST" action="{% url 'process_avatar' %}" id="generateForm">
+        {% csrf_token %}
+        <button type="submit" class="btn-continue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Generate Video</span>
+        </button>
+      </form>
     </div>
     <div class="next-chips">
-      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Select or upload avatar</div>
-      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Wav2Lip processes video</div>
-      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Download final MP4</div>
+      <div class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {% if avatar %}{{ avatar.name }}{% elif avatar_name %}{{ avatar_name }}{% else %}Avatar ready{% endif %}
+      </div>
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Wav2Lip lip-sync</div>
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Download MP4</div>
+    </div>
+    <!-- Change avatar / regenerate audio links -->
+    <div class="next-footer">
+      <a href="{% url 'dashboard' %}" class="next-footer-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+        Re-generate audio
+      </a>
+      <a href="{% url 'avatar_library' %}" class="next-footer-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Change avatar
+      </a>
     </div>
   </div>
 

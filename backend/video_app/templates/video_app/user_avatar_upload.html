@@ -1,0 +1,502 @@
+{% extends 'video_app/base.html' %}
+
+{% block title %}Add Your Avatar – Stackly{% endblock %}
+
+{% block extra_css %}
+  /* ── Page header ── */
+  .page-header { border-bottom: 1px solid var(--silk); background: white; }
+  .page-header-inner { max-width: 1100px; margin: 0 auto; padding: 36px 48px 28px; }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--stone); letter-spacing: .04em; margin-bottom: 14px; }
+  .breadcrumb a { color: var(--stone); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb-sep { color: var(--mist); }
+  .page-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--gold-pale); border: 1px solid rgba(201,168,76,.25); border-radius: 100px; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a6e28; margin-bottom: 12px; }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; color: var(--charcoal); line-height: 1.15; letter-spacing: -.01em; }
+  .page-title strong { font-weight: 600; }
+  .page-sub { font-size: 14px; color: var(--stone); margin-top: 8px; font-weight: 300; }
+
+  /* ── Layout ── */
+  .upload-wrap { max-width: 1100px; margin: 0 auto; padding: 48px; display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
+
+  /* ── Messages ── */
+  .messages-wrap { margin-bottom: 20px; }
+  .msg { padding: 12px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .msg.error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+  .msg.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+  .msg svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  /* ── Section card ── */
+  .section-card { background: white; border-radius: 14px; border: 1px solid var(--silk); box-shadow: var(--shadow-md); overflow: hidden; margin-bottom: 24px; animation: fade-up .5s ease both; }
+  .section-card:last-child { margin-bottom: 0; }
+  .card-header { padding: 20px 28px; border-bottom: 1px solid var(--silk); background: var(--pearl); position: relative; display: flex; align-items: center; justify-content: space-between; }
+  .card-header::after { content: ''; position: absolute; bottom: 0; left: 28px; right: 28px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); opacity: .4; }
+  .card-step  { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--stone); }
+  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--charcoal); margin-top: 2px; }
+  .card-pill  { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--charcoal); border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--gold); }
+  .card-pill-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
+  .card-body  { padding: 28px; }
+
+  /* ── Field ── */
+  .field-group { margin-bottom: 20px; }
+  .field-label { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--stone); margin-bottom: 9px; display: block; }
+  .field-label span { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--mist); font-size: 11px; margin-left: 6px; }
+
+  input[type="text"], select, textarea {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    color: var(--ink); background: var(--cream); border: 1px solid var(--silk);
+    border-radius: 8px; outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  input[type="text"] { padding: 12px 14px; }
+  textarea { padding: 12px 14px; resize: none; line-height: 1.6; height: 80px; }
+  select { padding: 12px 14px; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6760' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+  input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); background: white; }
+
+  /* ── Dual upload (preview image + source video) ── */
+  .dual-upload { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .upload-zone {
+    border: 2px dashed var(--silk); border-radius: 12px;
+    padding: 28px 16px; text-align: center;
+    transition: all .25s; cursor: pointer;
+    position: relative; background: var(--cream);
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: var(--gold-pale); }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .upload-icon { width: 42px; height: 42px; background: white; border-radius: 10px; border: 1px solid var(--silk); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: var(--shadow-soft); }
+  .upload-icon svg { width: 19px; height: 19px; color: var(--gold); }
+  .upload-zone-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .upload-zone-sub   { font-size: 11.5px; color: var(--stone); font-weight: 300; }
+  .upload-types      { font-size: 10.5px; color: var(--mist); margin-top: 6px; }
+
+  /* Preview cards */
+  .file-preview { display: none; margin-top: 12px; border-radius: 9px; overflow: hidden; border: 1px solid var(--silk); position: relative; }
+  .file-preview img, .file-preview video { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+  .file-preview-name { font-size: 11px; color: var(--stone); padding: 7px 10px; background: var(--pearl); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preview-clear { position: absolute; top: 7px; right: 7px; width: 22px; height: 22px; background: rgba(26,25,22,.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; font-size: 11px; }
+
+  /* ── Visibility toggle ── */
+  .visibility-row { display: flex; gap: 12px; }
+  .vis-option { flex: 1; }
+  .vis-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .vis-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 16px 12px; border-radius: 10px; border: 2px solid var(--silk);
+    cursor: pointer; transition: all .2s; text-align: center; background: var(--cream);
+  }
+  .vis-tile:hover { border-color: rgba(201,168,76,.4); }
+  .vis-option input:checked + .vis-tile { border-color: var(--gold); background: var(--gold-pale); box-shadow: 0 0 0 3px rgba(201,168,76,.12); }
+  .vis-icon { width: 32px; height: 32px; border-radius: 8px; background: white; border: 1px solid var(--silk); display: flex; align-items: center; justify-content: center; }
+  .vis-icon svg { width: 15px; height: 15px; color: var(--stone); }
+  .vis-option input:checked + .vis-tile .vis-icon svg { color: var(--gold); }
+  .vis-label { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .vis-desc  { font-size: 10.5px; color: var(--stone); line-height: 1.4; }
+
+  /* ── Submit ── */
+  .submit-section { padding: 0 28px 28px; }
+  .btn-upload {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 28px; background: var(--charcoal); color: var(--cream);
+    font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    border-radius: 9px; border: none; cursor: pointer;
+    letter-spacing: .05em; transition: all .25s; position: relative; overflow: hidden;
+  }
+  .btn-upload::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold), var(--gold-light)); opacity: 0; transition: opacity .25s; }
+  .btn-upload:hover::before { opacity: 1; }
+  .btn-upload:hover { color: var(--charcoal); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,.35); }
+  .btn-upload svg, .btn-upload span { position: relative; z-index: 1; }
+  .btn-upload svg { width: 17px; height: 17px; }
+  .btn-upload:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── My avatars list ── */
+  .my-avatars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+
+  .my-avatar-card { border-radius: 10px; border: 1px solid var(--silk); overflow: hidden; background: white; transition: box-shadow .2s; position: relative; }
+  .my-avatar-card:hover { box-shadow: var(--shadow-md); }
+
+  .my-avatar-thumb-wrap { position: relative; aspect-ratio: 1; overflow: hidden; background: var(--pearl); }
+  .my-avatar-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .my-avatar-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .my-avatar-thumb-placeholder svg { width: 28px; height: 28px; color: var(--mist); }
+
+  .my-avatar-status {
+    position: absolute; top: 6px; left: 6px;
+    padding: 2px 7px; border-radius: 100px; font-size: 9.5px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .status-pending  { background: rgba(201,168,76,.9); color: white; }
+  .status-approved { background: rgba(34,197,94,.9); color: white; }
+  .status-rejected { background: rgba(239,68,68,.9); color: white; }
+
+  .vis-badge { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; }
+  .vis-badge svg { width: 11px; height: 11px; color: white; }
+
+  .my-avatar-info { padding: 8px 10px 10px; }
+  .my-avatar-name { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .my-avatar-cat  { font-size: 10.5px; color: var(--mist); margin-top: 2px; }
+
+  .delete-btn {
+    display: block; width: calc(100% - 16px); margin: 0 8px 8px;
+    padding: 5px; text-align: center; background: transparent;
+    border: 1px solid var(--silk); border-radius: 6px;
+    font-size: 11px; color: #dc2626; cursor: pointer; transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .delete-btn:hover { background: #fef2f2; border-color: #fecaca; }
+
+  /* ── Empty state ── */
+  .empty-mine { text-align: center; padding: 32px 16px; color: var(--mist); font-size: 13px; }
+  .empty-mine svg { width: 36px; height: 36px; margin-bottom: 10px; }
+
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+  .info-card { background: white; border-radius: 12px; border: 1px solid var(--silk); padding: 22px; box-shadow: var(--shadow-soft); animation: fade-up .5s .1s ease both; }
+  .info-card-title { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--stone); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .info-card-title::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
+  .tip-list { display: flex; flex-direction: column; gap: 12px; }
+  .tip-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--stone); line-height: 1.5; }
+  .tip-num { width: 20px; height: 20px; flex-shrink: 0; background: var(--gold-pale); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #8a6e28; }
+  .spec-list { display: flex; flex-direction: column; gap: 8px; }
+  .spec-item { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--stone); padding: 8px 12px; border-radius: 7px; background: var(--cream); border: 1px solid var(--silk); }
+  .spec-item svg { width: 14px; height: 14px; color: var(--gold); flex-shrink: 0; }
+
+  /* ── Review notice ── */
+  .review-notice {
+    background: var(--gold-pale); border: 1px solid rgba(201,168,76,.3);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .review-notice svg { width: 16px; height: 16px; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+  .review-notice p { font-size: 12.5px; color: #6b5820; line-height: 1.6; margin: 0; }
+  .review-notice strong { color: #4a3b12; }
+
+  @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 960px) {
+    .upload-wrap { grid-template-columns: 1fr; padding: 24px; }
+    .page-header-inner { padding: 24px; }
+    .dual-upload { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb">
+      <a href="{% url 'home' %}">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'avatar_library' %}">Avatar Library</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Add My Avatar</span>
+    </div>
+    <div class="page-badge">Personal Avatars</div>
+    <h1 class="page-title">Add Your <strong>Avatar</strong></h1>
+    <p class="page-sub">Upload your own photo or video to use as a presenter in your AI videos.</p>
+  </div>
+</div>
+
+
+<div class="upload-wrap">
+  <div>
+
+    {% if messages %}
+    <div class="messages-wrap">
+      {% for message in messages %}
+      <div class="msg {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+        {% if message.tags == 'error' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% else %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {% endif %}
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upload Form -->
+    <form method="POST" action="{% url 'user_avatar_upload' %}" enctype="multipart/form-data" id="uploadForm">
+      {% csrf_token %}
+
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <div class="card-step">Step 1</div>
+            <div class="card-title">Avatar Details</div>
+          </div>
+          <div class="card-pill"><span class="card-pill-dot"></span> Required</div>
+        </div>
+        <div class="card-body">
+
+          <div class="field-group">
+            <label class="field-label" for="avatarName">Avatar Name <span>Give it a recognisable name</span></label>
+            <input type="text" id="avatarName" name="name" placeholder="e.g. My Presenter, Office Look…" required maxlength="80">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="avatarCategory">Category</label>
+            <select id="avatarCategory" name="category">
+              <option value="presenter">Presenter</option>
+              <option value="teacher">Teacher</option>
+              <option value="business">Business</option>
+              <option value="narrator">Narrator</option>
+              <option value="influencer">Influencer</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="avatarDesc">Description <span>Optional</span></label>
+            <textarea id="avatarDesc" name="description" placeholder="Brief note about this avatar…"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Visibility <span>Who can use this avatar</span></label>
+            <div class="visibility-row">
+              <label class="vis-option">
+                <input type="radio" name="is_public" value="false" checked>
+                <div class="vis-tile">
+                  <div class="vis-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
+                  <div class="vis-label">Private</div>
+                  <div class="vis-desc">Only you can use this avatar</div>
+                </div>
+              </label>
+              <label class="vis-option">
+                <input type="radio" name="is_public" value="true">
+                <div class="vis-tile">
+                  <div class="vis-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  </div>
+                  <div class="vis-label">Public</div>
+                  <div class="vis-desc">Share with all Stackly users after review</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- File Upload -->
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <div class="card-step">Step 2</div>
+            <div class="card-title">Upload Files</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div class="review-notice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p><strong>Heads up:</strong> Uploaded avatars go through a quick review before appearing in your library. Private avatars are available to you immediately; public ones appear for all users after approval.</p>
+          </div>
+
+          <div class="dual-upload">
+
+            <!-- Preview Image -->
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">Thumbnail Image <span>Shown in grid</span></label>
+              <div class="upload-zone" id="imgZone">
+                <input type="file" name="preview_image" id="imgFile" accept="image/jpeg,image/png,image/webp" onchange="previewFile(this,'imgPreview','img')">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div class="upload-zone-title">Drop image here</div>
+                <div class="upload-zone-sub">or click to browse</div>
+                <div class="upload-types">JPG · PNG · WEBP · Max 5MB</div>
+              </div>
+              <div class="file-preview" id="imgPreview">
+                <button type="button" class="preview-clear" onclick="clearFile('imgPreview','imgFile')">✕</button>
+                <img id="imgPreviewEl" src="" alt="Preview">
+                <div class="file-preview-name" id="imgPreviewName"></div>
+              </div>
+            </div>
+
+            <!-- Source Video -->
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">Source Video <span>Used for lip-sync</span></label>
+              <div class="upload-zone" id="vidZone">
+                <input type="file" name="source_video" id="vidFile" accept="video/mp4,video/quicktime,video/avi" required onchange="previewFile(this,'vidPreview','vid')">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                </div>
+                <div class="upload-zone-title">Drop video here</div>
+                <div class="upload-zone-sub">or click to browse</div>
+                <div class="upload-types">MP4 · MOV · AVI · Max 200MB</div>
+              </div>
+              <div class="file-preview" id="vidPreview">
+                <button type="button" class="preview-clear" onclick="clearFile('vidPreview','vidFile')">✕</button>
+                <video id="vidPreviewEl" controls></video>
+                <div class="file-preview-name" id="vidPreviewName"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="submit-section">
+          <button type="submit" class="btn-upload" id="submitBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload Avatar</span>
+          </button>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- My Uploaded Avatars -->
+    <div class="section-card" style="animation-delay:.15s;">
+      <div class="card-header">
+        <div>
+          <div class="card-step">My Uploads</div>
+          <div class="card-title">Your Avatar Library</div>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if user_avatars %}
+        <div class="my-avatars-grid">
+          {% for av in user_avatars %}
+          <div class="my-avatar-card">
+            <div class="my-avatar-thumb-wrap">
+              {% if av.preview_url %}
+                <img src="{{ av.preview_url }}" alt="{{ av.name }}">
+              {% else %}
+                <div class="my-avatar-thumb-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </div>
+              {% endif %}
+              <span class="my-avatar-status status-{{ av.review_status }}">{{ av.get_review_status_display }}</span>
+              <span class="vis-badge" title="{% if av.is_public %}Public{% else %}Private{% endif %}">
+                {% if av.is_public %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                {% endif %}
+              </span>
+            </div>
+            <div class="my-avatar-info">
+              <div class="my-avatar-name">{{ av.name }}</div>
+              <div class="my-avatar-cat">{{ av.get_category_display }}</div>
+            </div>
+            <form method="POST" action="{% url 'user_avatar_delete' av.pk %}" onsubmit="return confirm('Delete this avatar?')">
+              {% csrf_token %}
+              <button type="submit" class="delete-btn">Remove</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-mine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <p>You haven't uploaded any avatars yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="info-card">
+      <div class="info-card-title">Best Practices</div>
+      <div class="tip-list">
+        <div class="tip-item"><div class="tip-num">1</div><span>Use a clear, front-facing photo or video for the best lip-sync results.</span></div>
+        <div class="tip-item"><div class="tip-num">2</div><span>Good lighting and a neutral background produce much cleaner outputs.</span></div>
+        <div class="tip-item"><div class="tip-num">3</div><span>For videos, a 5–30 second clip gives Wav2Lip enough frames to work with.</span></div>
+        <div class="tip-item"><div class="tip-num">4</div><span>The face should be clearly visible and not obscured by glasses or hair.</span></div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">Supported Formats</div>
+      <div class="spec-list">
+        <div class="spec-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Thumbnail — JPG, PNG, WEBP (max 5 MB)
+        </div>
+        <div class="spec-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Source Video — MP4, MOV, AVI (max 200 MB)
+        </div>
+        <div class="spec-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Video length — 5 to 60 seconds ideal
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">Review Policy</div>
+      <div style="font-size:12.5px;color:var(--stone);line-height:1.7;">
+        <p style="margin:0 0 10px;">Private avatars are available to you right away.</p>
+        <p style="margin:0 0 10px;">Public avatars are reviewed within 24 hours to ensure community standards before becoming visible to all users.</p>
+        <p style="margin:0;">All uploads are reviewed for appropriate content.</p>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  function previewFile(input, previewId, type) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const preview = document.getElementById(previewId);
+    preview.style.display = 'block';
+    document.getElementById(previewId + 'Name').textContent = file.name;
+
+    if (type === 'img') {
+      document.getElementById('imgPreviewEl').src = URL.createObjectURL(file);
+    } else {
+      document.getElementById('vidPreviewEl').src = URL.createObjectURL(file);
+    }
+  }
+
+  function clearFile(previewId, inputId) {
+    document.getElementById(previewId).style.display = 'none';
+    document.getElementById(inputId).value = '';
+    if (previewId === 'imgPreview') document.getElementById('imgPreviewEl').src = '';
+    else document.getElementById('vidPreviewEl').src = '';
+  }
+
+  // Upload progress feedback
+  document.getElementById('uploadForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      <span>Uploading…</span>`;
+  });
+
+  // Drag & drop for each zone
+  ['imgZone', 'vidZone'].forEach(zoneId => {
+    const zone = document.getElementById(zoneId);
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      const fileInput = zone.querySelector('input[type="file"]');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+</script>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+{% endblock %}

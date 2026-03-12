@@ -7,442 +7,278 @@
 {% block extra_css %}
   /* ── Page header ── */
   .page-header { border-bottom: 1px solid var(--silk); background: white; }
-
-  .page-header-inner {
-    max-width: 1200px; margin: 0 auto;
-    padding: 36px 48px 28px;
-  }
-
-  .breadcrumb {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: var(--stone);
-    letter-spacing: 0.04em; margin-bottom: 14px;
-  }
-
-  .breadcrumb a { color: var(--stone); text-decoration: none; transition: color 0.2s; }
+  .page-header-inner { max-width: 1200px; margin: 0 auto; padding: 36px 48px 28px; }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--stone); letter-spacing: .04em; margin-bottom: 14px; }
+  .breadcrumb a { color: var(--stone); text-decoration: none; transition: color .2s; }
   .breadcrumb a:hover { color: var(--gold); }
   .breadcrumb-sep { color: var(--mist); }
-
-  .page-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 12px;
-    background: var(--gold-pale); border: 1px solid rgba(201,168,76,0.25);
-    border-radius: 100px; font-size: 10.5px; font-weight: 600;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: #8a6e28; margin-bottom: 12px;
-  }
-
-  .page-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 34px; font-weight: 300;
-    color: var(--charcoal); line-height: 1.15;
-    letter-spacing: -0.01em;
-  }
-
+  .page-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--gold-pale); border: 1px solid rgba(201,168,76,.25); border-radius: 100px; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a6e28; margin-bottom: 12px; }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; color: var(--charcoal); line-height: 1.15; letter-spacing: -.01em; }
   .page-title strong { font-weight: 600; }
   .page-sub { font-size: 14px; color: var(--stone); margin-top: 8px; font-weight: 300; }
 
   /* ── Pipeline Stepper ── */
-  .pipeline-strip {
-    background: white;
-    border-bottom: 1px solid var(--silk);
-  }
-
-  .pipeline-inner {
-    max-width: 1200px; margin: 0 auto;
-    padding: 20px 48px;
-    display: flex; align-items: center; gap: 0;
-  }
-
-  .pipeline-step {
-    display: flex; align-items: center; gap: 10px;
-    flex: 1;
-    position: relative;
-  }
-
-  .pipeline-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0; top: 50%; transform: translateY(-50%);
-    width: calc(100% - 120px);
-    height: 1px;
-    background: var(--silk);
-    left: 120px;
-    z-index: 0;
-  }
-
-  .pipeline-step.done:not(:last-child)::after {
-    background: linear-gradient(90deg, var(--gold), rgba(201,168,76,0.2));
-  }
-
-  .step-icon {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    font-size: 12px; font-weight: 700;
-    transition: all 0.3s;
-    position: relative; z-index: 1;
-  }
-
-  .pipeline-step.done .step-icon {
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: white;
-    box-shadow: 0 2px 8px rgba(201,168,76,0.35);
-  }
-
-  .pipeline-step.active .step-icon {
-    background: var(--charcoal);
-    color: var(--gold);
-    box-shadow: 0 2px 12px rgba(26,25,22,0.25);
-  }
-
-  .pipeline-step.queue .step-icon {
-    background: var(--pearl);
-    color: var(--mist);
-    border: 1px solid var(--silk);
-  }
-
+  .pipeline-strip { background: white; border-bottom: 1px solid var(--silk); }
+  .pipeline-inner { max-width: 1200px; margin: 0 auto; padding: 20px 48px; display: flex; align-items: center; }
+  .pipeline-step { display: flex; align-items: center; gap: 10px; flex: 1; position: relative; }
+  .pipeline-step:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: calc(100% - 120px); height: 1px; background: var(--silk); left: 120px; z-index: 0; }
+  .pipeline-step.done:not(:last-child)::after { background: linear-gradient(90deg, var(--gold), rgba(201,168,76,.2)); }
+  .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 700; transition: all .3s; position: relative; z-index: 1; }
+  .pipeline-step.done .step-icon   { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: white; box-shadow: 0 2px 8px rgba(201,168,76,.35); }
+  .pipeline-step.active .step-icon { background: var(--charcoal); color: var(--gold); box-shadow: 0 2px 12px rgba(26,25,22,.25); }
+  .pipeline-step.queue .step-icon  { background: var(--pearl); color: var(--mist); border: 1px solid var(--silk); }
   .step-icon svg { width: 14px; height: 14px; }
-
   .step-info { flex: 1; min-width: 0; }
-
-  .step-name {
-    font-size: 12px; font-weight: 600;
-    color: var(--ink); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-  }
-
+  .step-name { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pipeline-step.queue .step-name { color: var(--mist); }
-
-  .step-state {
-    font-size: 10.5px; color: var(--stone); font-weight: 300;
-  }
-
+  .step-state { font-size: 10.5px; color: var(--stone); font-weight: 300; }
   .pipeline-step.active .step-state { color: var(--gold); font-weight: 500; }
   .pipeline-step.queue .step-state  { color: var(--mist); }
 
   /* ── Layout ── */
-  .dashboard-wrap {
-    max-width: 1200px; margin: 0 auto;
-    padding: 40px 48px;
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 32px;
-    align-items: start;
-  }
+  .dashboard-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 48px; display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
 
   /* ── Form card ── */
-  .form-card {
-    background: white; border-radius: 14px;
-    border: 1px solid var(--silk); box-shadow: var(--shadow-md);
-    overflow: hidden;
-    animation: fade-up 0.5s ease both;
-  }
-
-  .form-card-header {
-    padding: 24px 32px; border-bottom: 1px solid var(--silk);
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--pearl); position: relative;
-  }
-
-  .form-card-header::after {
-    content: ''; position: absolute; bottom: 0; left: 32px; right: 32px;
-    height: 1px;
-    background: linear-gradient(90deg, var(--gold), transparent);
-    opacity: 0.4;
-  }
-
-  .stage-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--stone); }
+  .form-card { background: white; border-radius: 14px; border: 1px solid var(--silk); box-shadow: var(--shadow-md); overflow: hidden; animation: fade-up .5s ease both; }
+  .form-card-header { padding: 24px 32px; border-bottom: 1px solid var(--silk); display: flex; align-items: center; justify-content: space-between; background: var(--pearl); position: relative; }
+  .form-card-header::after { content: ''; position: absolute; bottom: 0; left: 32px; right: 32px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); opacity: .4; }
+  .stage-label { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--stone); }
   .stage-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--charcoal); margin-top: 4px; }
-
-  .stage-pill {
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 14px;
-    background: var(--charcoal); border-radius: 100px;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.06em; color: var(--gold);
-  }
-
+  .stage-pill { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--charcoal); border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--gold); }
   .stage-pill-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
-
   .form-card-body { padding: 32px; }
 
   /* ── Fields ── */
   .field-group { margin-bottom: 24px; }
-
-  .field-label {
-    font-size: 11.5px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--stone); margin-bottom: 10px; display: block;
-  }
-
-  .field-label span {
-    font-weight: 400; letter-spacing: 0; text-transform: none;
-    color: var(--mist); font-size: 11px; margin-left: 6px;
-  }
-
-  textarea, select {
-    width: 100%;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px; color: var(--ink);
-    background: var(--cream); border: 1px solid var(--silk);
-    border-radius: 8px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
+  .field-label { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--stone); margin-bottom: 10px; display: block; }
+  .field-label span { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--mist); font-size: 11px; margin-left: 6px; }
+  textarea, select { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); background: var(--cream); border: 1px solid var(--silk); border-radius: 8px; outline: none; transition: border-color .2s, box-shadow .2s; }
   textarea { padding: 14px 16px; resize: none; line-height: 1.65; }
-
-  textarea:focus, select:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
-    background: white;
-  }
-
+  textarea:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); background: white; }
   textarea::placeholder { color: var(--mist); }
   .textarea-main       { height: 130px; }
   .textarea-translated { height: 110px; color: var(--stone); }
-
-  select {
-    padding: 12px 16px; cursor: pointer;
-    appearance: none; -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6760' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 38px;
-  }
-
+  select { padding: 12px 16px; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6760' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
   .char-count { display: flex; justify-content: flex-end; font-size: 11px; color: var(--mist); margin-top: 6px; }
+  .field-divider { display: flex; align-items: center; gap: 14px; margin: 28px 0; color: var(--mist); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .field-divider::before, .field-divider::after { content: ''; flex: 1; height: 1px; background: var(--silk); }
 
-  .field-divider {
-    display: flex; align-items: center; gap: 14px;
-    margin: 28px 0;
-    color: var(--mist); font-size: 11px;
-    letter-spacing: 0.08em; text-transform: uppercase;
+  /* ── Avatar mini-picker ── */
+  .avatar-picker-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .avatar-picker-link { font-size: 11.5px; color: var(--gold); text-decoration: none; font-weight: 500; transition: color .2s; }
+  .avatar-picker-link:hover { color: #8a6e28; }
+  .avatar-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 10px; }
+  .avatar-mini-card {
+    border-radius: 10px; border: 2px solid var(--silk);
+    overflow: hidden; cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    position: relative;
   }
-
-  .field-divider::before, .field-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--silk);
-  }
+  .avatar-mini-card:hover { border-color: rgba(201,168,76,.5); transform: translateY(-2px); }
+  .avatar-mini-card.selected { border-color: var(--gold); }
+  .avatar-mini-card.selected::after { content: ''; position: absolute; inset: 0; background: rgba(201,168,76,.12); pointer-events: none; }
+  .avatar-mini-check { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); border: 1.5px solid white; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(.5); transition: all .2s; }
+  .avatar-mini-card.selected .avatar-mini-check { opacity: 1; transform: scale(1); }
+  .avatar-mini-check svg { width: 9px; height: 9px; color: white; }
+  .avatar-mini-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .avatar-mini-img-placeholder { width: 100%; aspect-ratio: 1; background: var(--pearl); display: flex; align-items: center; justify-content: center; }
+  .avatar-mini-img-placeholder svg { width: 22px; height: 22px; color: var(--mist); }
+  .avatar-mini-name { font-size: 10px; font-weight: 600; color: var(--ink); padding: 5px 6px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: white; }
+  .no-avatars-msg { font-size: 13px; color: var(--stone); padding: 14px; background: var(--pearl); border-radius: 8px; border: 1px solid var(--silk); text-align: center; }
+  .no-avatars-msg a { color: var(--gold); }
 
   /* ── Buttons ── */
   .form-actions { display: flex; gap: 14px; margin-top: 32px; }
-
-  .btn-translate {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 13px 22px;
-    background: var(--pearl); color: var(--ink);
-    font-size: 13.5px; font-weight: 500;
-    border-radius: 8px; border: 1px solid var(--silk);
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s; letter-spacing: 0.02em;
-  }
-
+  .btn-translate { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; background: var(--pearl); color: var(--ink); font-size: 13.5px; font-weight: 500; border-radius: 8px; border: 1px solid var(--silk); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; letter-spacing: .02em; }
   .btn-translate svg { width: 15px; height: 15px; color: var(--gold); }
-
-  .btn-translate:hover {
-    background: white; border-color: var(--gold);
-    color: var(--charcoal); box-shadow: 0 4px 16px rgba(201,168,76,0.15);
-  }
-
-  .btn-generate {
-    flex: 1;
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 13px 24px;
-    background: var(--charcoal); color: var(--cream);
-    font-size: 13.5px; font-weight: 500;
-    border-radius: 8px; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.25s; letter-spacing: 0.04em;
-    position: relative; overflow: hidden;
-  }
-
-  .btn-generate::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-    opacity: 0; transition: opacity 0.25s;
-  }
-
+  .btn-translate:hover { background: white; border-color: var(--gold); color: var(--charcoal); box-shadow: 0 4px 16px rgba(201,168,76,.15); }
+  .btn-generate { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 13px 24px; background: var(--charcoal); color: var(--cream); font-size: 13.5px; font-weight: 500; border-radius: 8px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .25s; letter-spacing: .04em; position: relative; overflow: hidden; }
+  .btn-generate::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); opacity: 0; transition: opacity .25s; }
   .btn-generate:hover::before { opacity: 1; }
-  .btn-generate:hover { color: var(--charcoal); box-shadow: 0 8px 28px rgba(201,168,76,0.35); transform: translateY(-1px); }
+  .btn-generate:hover { color: var(--charcoal); box-shadow: 0 8px 28px rgba(201,168,76,.35); transform: translateY(-1px); }
   .btn-generate span, .btn-generate svg { position: relative; z-index: 1; }
   .btn-generate svg { width: 16px; height: 16px; }
 
+  /* ── Translate inline ── */
+  .translate-label-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+  .btn-translate-inline {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; background: var(--pearl);
+    color: var(--stone); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    border: 1px solid var(--silk); border-radius: 6px;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-translate-inline svg { width: 13px; height: 13px; color: var(--gold); }
+  .btn-translate-inline:hover { background: white; border-color: var(--gold); color: var(--charcoal); }
+  .btn-translate-inline:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* ── Form hint ── */
+  .form-hint {
+    margin-top: 10px; font-size: 12px; color: var(--mist);
+    text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .form-hint::before {
+    content: ''; display: inline-block;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold); opacity: .6;
+  }
+
   /* ── Sidebar ── */
   .sidebar { display: flex; flex-direction: column; gap: 20px; }
-
-  .info-card {
-    background: white; border-radius: 12px;
-    border: 1px solid var(--silk); padding: 22px;
-    box-shadow: var(--shadow-soft);
-    animation: fade-up 0.5s 0.1s ease both;
-  }
-
-  .info-card-title {
-    font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--stone); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-
+  .info-card { background: white; border-radius: 12px; border: 1px solid var(--silk); padding: 22px; box-shadow: var(--shadow-soft); animation: fade-up .5s .1s ease both; }
+  .info-card-title { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--stone); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .info-card-title::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
+  .info-card-title a { color: var(--gold); text-decoration: none; margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: .08em; }
 
-  .lang-list { display: flex; flex-direction: column; gap: 8px; }
-
-  .lang-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 7px;
-    background: var(--cream); border: 1px solid var(--silk);
-    font-size: 13px; color: var(--ink);
-  }
-
-  .lang-flag { font-size: 18px; line-height: 1; }
-  .lang-name { font-weight: 500; flex: 1; }
-  .lang-code { font-size: 10.5px; color: var(--mist); letter-spacing: 0.06em; font-weight: 600; }
-
-  .tip-list { display: flex; flex-direction: column; gap: 12px; }
-
-  .tip-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--stone); line-height: 1.5; }
-
-  .tip-num {
-    width: 20px; height: 20px; flex-shrink: 0;
-    background: var(--gold-pale); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700; color: #8a6e28;
-  }
-
-  /* ── Recent generations ── */
-  .recent-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .recent-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 8px;
-    background: var(--cream); border: 1px solid var(--silk);
-    text-decoration: none; transition: all 0.2s;
-    cursor: pointer;
-  }
-
-  .recent-item:hover {
-    background: white; border-color: var(--gold);
-    box-shadow: 0 4px 12px rgba(201,168,76,0.15);
-    transform: translateX(2px);
-  }
-
-  .recent-thumb {
-    width: 36px; height: 36px; flex-shrink: 0;
-    border-radius: 6px; overflow: hidden;
-    background: var(--pearl);
-    border: 1px solid var(--silk);
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .recent-thumb svg { width: 16px; height: 16px; color: var(--mist); }
-
-  .recent-info { flex: 1; min-width: 0; }
-
-  .recent-name {
-    font-size: 12.5px; font-weight: 600;
-    color: var(--ink); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-  }
-
-  .recent-time { font-size: 11px; color: var(--mist); margin-top: 2px; }
-
-  .recent-play {
-    width: 28px; height: 28px; flex-shrink: 0;
-    background: var(--gold-pale);
-    border-radius: 50%;
-    border: 1px solid rgba(201,168,76,0.25);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .recent-item:hover .recent-play {
-    background: var(--gold); border-color: var(--gold);
-  }
-
-  .recent-play svg { width: 10px; height: 10px; color: var(--gold); }
-  .recent-item:hover .recent-play svg { color: white; }
-
-  .recent-empty {
-    text-align: center; padding: 20px;
-    font-size: 12.5px; color: var(--mist);
-    font-weight: 300; line-height: 1.6;
-  }
-
-  /* ── Latest video card ── */
-  .latest-video-card {
-    background: white; border-radius: 12px;
-    border: 1px solid var(--silk); overflow: hidden;
-    box-shadow: var(--shadow-soft);
-    animation: fade-up 0.5s 0.2s ease both;
-  }
-
-  .latest-video-header {
-    padding: 14px 18px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--silk);
-    background: var(--pearl);
-  }
-
-  .latest-video-title {
-    font-size: 10.5px; font-weight: 700;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--stone);
-    display: flex; align-items: center; gap: 8px;
-  }
-
+  /* Latest video */
+  .latest-video-card { background: white; border-radius: 12px; border: 1px solid var(--silk); overflow: hidden; box-shadow: var(--shadow-soft); }
+  .latest-video-header { padding: 16px 18px 14px; border-bottom: 1px solid var(--silk); display: flex; align-items: center; justify-content: space-between; }
+  .latest-video-title { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--stone); display: flex; align-items: center; gap: 8px; }
   .latest-video-title::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
-
-  .latest-video-meta { font-size: 11px; color: var(--mist); }
-
-  .latest-video-player {
-    aspect-ratio: 16/9;
-    background: var(--charcoal);
-    display: flex; align-items: center; justify-content: center;
-    position: relative; overflow: hidden;
-  }
-
-  .latest-video-player video {
-    width: 100%; height: 100%; object-fit: cover;
-    display: block;
-  }
-
-  .latest-placeholder {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 10px;
-    color: rgba(250,249,247,0.35);
-    font-size: 12px; font-weight: 300;
-    letter-spacing: 0.04em; padding: 20px;
-    text-align: center;
-  }
-
-  .latest-placeholder svg { width: 32px; height: 32px; opacity: 0.4; }
-
-  .latest-video-actions {
-    display: flex; gap: 1px; border-top: 1px solid var(--silk);
-  }
-
-  .latest-action {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 12px 8px; font-size: 12px; font-weight: 500;
-    color: var(--stone); text-decoration: none;
-    background: var(--pearl); transition: all 0.2s;
-    cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
-  }
-
-  .latest-action:hover { background: white; color: var(--gold); }
+  .latest-video-meta  { font-size: 11px; color: var(--mist); }
+  .latest-video-player { padding: 0; }
+  .latest-video-player video { width: 100%; display: block; max-height: 180px; object-fit: cover; }
+  .latest-placeholder { padding: 40px 20px; text-align: center; color: var(--mist); font-size: 12.5px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--pearl); }
+  .latest-placeholder svg { width: 28px; height: 28px; }
+  .latest-video-actions { display: flex; border-top: 1px solid var(--silk); }
+  .latest-action { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 11px; font-size: 12px; font-weight: 500; color: var(--stone); background: white; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; text-decoration: none; }
+  .latest-action:not(:last-child) { border-right: 1px solid var(--silk); }
+  .latest-action:hover { background: var(--pearl); color: var(--gold); }
   .latest-action svg { width: 13px; height: 13px; }
-  .latest-action + .latest-action { border-left: 1px solid var(--silk); }
 
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+  /* Recent generations */
+  .recent-list { display: flex; flex-direction: column; gap: 6px; }
+  .recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: var(--cream); border: 1px solid var(--silk); text-decoration: none; transition: all .2s; }
+  .recent-item:hover { background: white; border-color: var(--gold); }
+  .recent-thumb { width: 34px; height: 34px; border-radius: 6px; background: var(--charcoal); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  .recent-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .recent-thumb svg { width: 14px; height: 14px; color: rgba(255,255,255,.4); }
+  .recent-info { flex: 1; min-width: 0; }
+  .recent-name { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recent-time { font-size: 10.5px; color: var(--mist); margin-top: 2px; }
+  .recent-play { color: var(--gold); }
+  .recent-play svg { width: 11px; height: 11px; }
+  .recent-empty { font-size: 12.5px; color: var(--mist); text-align: center; padding: 20px 0; }
+
+  /* Tips */
+  .tip-list { display: flex; flex-direction: column; gap: 12px; }
+  .tip-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: var(--stone); line-height: 1.55; }
+  .tip-num { width: 20px; height: 20px; background: var(--gold-pale); border: 1px solid rgba(201,168,76,.25); border-radius: 50%; color: #8a6e28; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Avatar Mine badge ── */
+  .avatar-mine-badge {
+    position: absolute; bottom: 26px; left: 0; right: 0;
+    font-size: 8.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; text-align: center;
+    background: rgba(201,168,76,.9); color: white; padding: 2px 0;
   }
 
-  @media (max-width: 960px) {
-    .dashboard-wrap { grid-template-columns: 1fr; padding: 24px; }
-    .page-header-inner { padding: 24px; }
-    .pipeline-inner { padding: 14px 24px; overflow-x: auto; }
+  /* ── Avatar tabs ── */
+  .avatar-tabs {
+    display: flex; gap: 4px;
+    background: var(--pearl); border: 1px solid var(--silk);
+    border-radius: 9px; padding: 4px; margin-bottom: 14px;
+  }
+  .avatar-tab {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 500;
+    color: var(--stone); background: transparent;
+    border: none; border-radius: 6px; cursor: pointer;
+    transition: all .2s;
+  }
+  .avatar-tab svg { width: 13px; height: 13px; }
+  .avatar-tab:hover { color: var(--charcoal); background: white; }
+  .avatar-tab.active {
+    background: white; color: var(--charcoal);
+    box-shadow: 0 1px 6px rgba(0,0,0,.09);
+    font-weight: 600;
+  }
+  .avatar-tab-panel { }
+
+  /* ── Inline upload box ── */
+  .upload-inline-box {
+    border: 2px dashed var(--silk); border-radius: 10px;
+    background: var(--pearl);
+    padding: 24px 20px 20px; text-align: center;
+    transition: border-color .2s, background .2s;
+  }
+  .upload-inline-box.drag-over { border-color: var(--gold); background: var(--gold-pale); }
+  .upload-icon-wrap {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: white; border: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+  }
+  .upload-icon-wrap svg { width: 24px; height: 24px; color: var(--stone); }
+  .upload-inline-title { font-size: 13.5px; font-weight: 600; color: var(--charcoal); margin-bottom: 4px; }
+  .upload-or-word { color: var(--stone); font-weight: 400; }
+  .upload-inline-sub { font-size: 11.5px; color: var(--mist); margin-bottom: 16px; line-height: 1.5; }
+  /* Two pick buttons */
+  .upload-type-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .btn-upload-type {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 10px;
+    background: white; border: 1.5px solid var(--silk); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600;
+    color: var(--charcoal); cursor: pointer; transition: all .2s;
+  }
+  .btn-upload-type svg { width: 18px; height: 18px; color: var(--gold); }
+  .btn-upload-type:hover { border-color: var(--gold); background: var(--gold-pale); color: #7a5f1f; }
+  .upload-type-hint { font-size: 10px; font-weight: 400; color: var(--mist); letter-spacing: .03em; }
+  .upload-drag-hint { font-size: 11px; color: var(--mist); margin-top: 2px; }
+
+  /* Preview row */
+  .upload-preview-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: white;
+    border: 1px solid var(--silk); border-radius: 8px; margin-bottom: 10px;
+  }
+  .upload-preview-icon {
+    width: 36px; height: 36px; border-radius: 7px;
+    background: var(--charcoal); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .upload-preview-icon svg { width: 16px; height: 16px; color: rgba(255,255,255,.6); }
+  .upload-preview-info { flex: 1; min-width: 0; }
+  .upload-preview-name { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .upload-preview-size { font-size: 11px; color: var(--mist); margin-top: 2px; }
+  .upload-preview-clear {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--pearl); border: 1px solid var(--silk);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--stone); transition: all .2s; flex-shrink: 0;
+  }
+  .upload-preview-clear:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+  .upload-preview-clear svg { width: 11px; height: 11px; }
+
+  .upload-name-row { margin-bottom: 10px; }
+  .upload-name-input {
+    width: 100%; padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--ink);
+    background: var(--cream); border: 1px solid var(--silk); border-radius: 8px;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .upload-name-input:focus {
+    border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.12); background: white;
+  }
+  .upload-name-input::placeholder { color: var(--mist); }
+
+  .upload-note {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; color: var(--stone);
+    padding: 8px 12px; background: var(--gold-pale);
+    border: 1px solid rgba(201,168,76,.2); border-radius: 7px;
+  }
+
+
+
+  @media (max-width: 900px) {
+    .dashboard-wrap { grid-template-columns: 1fr; }
+    .page-header-inner, .pipeline-inner, .dashboard-wrap { padding-left: 20px; padding-right: 20px; }
+    .avatar-mini-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); }
   }
 {% endblock %}
 
@@ -457,73 +293,54 @@
       <span class="breadcrumb-sep">›</span>
       <span>Dashboard</span>
     </div>
-    <div class="page-badge">TTS Pipeline</div>
-    <h1 class="page-title">Generate <strong>AI Audio</strong></h1>
-    <p class="page-sub">Enter your script, translate, and produce professional-grade speech in seconds.</p>
+    <div class="page-badge">
+      <span style="width:5px;height:5px;background:var(--gold);border-radius:50%;"></span>
+      Studio
+    </div>
+    <h1 class="page-title">AI Video <strong>Studio</strong></h1>
+    <p class="page-sub">Enter your script, choose an avatar and generate your video in seconds.</p>
   </div>
 </div>
 
 <!-- Pipeline stepper -->
 <div class="pipeline-strip">
   <div class="pipeline-inner">
-
     <div class="pipeline-step done">
-      <div class="step-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="step-info">
-        <div class="step-name">Script</div>
-        <div class="step-state">Complete</div>
-      </div>
-    </div>
-
-    <div class="pipeline-step active">
-      <div class="step-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
-      </div>
-      <div class="step-info">
-        <div class="step-name">Translate</div>
-        <div class="step-state">Active</div>
-      </div>
-    </div>
-
-    <div class="pipeline-step active">
       <div class="step-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
       </div>
-      <div class="step-info">
-        <div class="step-name">Audio</div>
-        <div class="step-state">Active</div>
-      </div>
+      <div class="step-info"><div class="step-name">Text Input</div><div class="step-state">Ready</div></div>
     </div>
-
+    <div class="pipeline-step active">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <div class="step-info"><div class="step-name">TTS + Avatar</div><div class="step-state">Active</div></div>
+    </div>
     <div class="pipeline-step queue">
-      <div class="step-icon">4</div>
-      <div class="step-info">
-        <div class="step-name">Avatar</div>
-        <div class="step-state">Queued</div>
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
       </div>
+      <div class="step-info"><div class="step-name">Lip-Sync</div><div class="step-state">Queued</div></div>
     </div>
-
     <div class="pipeline-step queue">
-      <div class="step-icon">5</div>
-      <div class="step-info">
-        <div class="step-name">Video</div>
-        <div class="step-state">Queued</div>
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
+      <div class="step-info"><div class="step-name">Final Video</div><div class="step-state">Queued</div></div>
     </div>
-
   </div>
 </div>
 
+<!-- Main content -->
 <div class="dashboard-wrap">
 
-  <!-- Main form -->
+  <!-- Form card -->
   <div class="form-card">
     <div class="form-card-header">
       <div>
-        <div class="stage-label">Current Stage</div>
-        <div class="stage-title">TTS Pipeline — Stage 1</div>
+        <div class="stage-label">Stage 1 + 2 Combined</div>
+        <div class="stage-title">Script, Language & Avatar</div>
       </div>
       <div class="stage-pill">
         <span class="stage-pill-dot"></span>
@@ -532,22 +349,17 @@
     </div>
 
     <div class="form-card-body">
-      <form method="POST" action="{% url 'generate_audio' %}">
+      <form method="POST" action="{% url 'generate_audio' %}" enctype="multipart/form-data" id="mainForm">
         {% csrf_token %}
 
+        <!-- Script -->
         <div class="field-group">
-          <label class="field-label" for="inputText">
-            Script <span>Your original content</span>
-          </label>
-          <textarea
-            id="inputText" name="text"
-            class="textarea-main"
-            placeholder="Write or paste your script here…"
-            oninput="updateCount(this)"
-          ></textarea>
+          <label class="field-label" for="inputText">Script <span>Your original content</span></label>
+          <textarea id="inputText" name="text" class="textarea-main" placeholder="Write or paste your script here…" oninput="updateCount(this)"></textarea>
           <div class="char-count"><span id="charCount">0</span> characters</div>
         </div>
 
+        <!-- Language -->
         <div class="field-group">
           <label class="field-label" for="language">Target Language</label>
           <select id="language" name="language">
@@ -558,30 +370,165 @@
           </select>
         </div>
 
-        <div class="field-divider">Translate first (optional)</div>
+        <div class="field-divider">Translate (optional)</div>
 
+        <!-- Translated text with inline translate button -->
         <div class="field-group">
-          <label class="field-label" for="translatedText">
-            Translated Script <span>Auto-filled after translation</span>
-          </label>
-          <textarea
-            id="translatedText" name="translated_text"
-            class="textarea-translated"
-            readonly
-            placeholder="Translation will appear here…"
-          ></textarea>
+          <div class="translate-label-row">
+            <label class="field-label" for="translatedText" style="margin-bottom:0;">Translated Script <span>Auto-filled</span></label>
+            <button type="button" class="btn-translate-inline" id="translateBtn" onclick="translateText()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+              Translate
+            </button>
+          </div>
+          <textarea id="translatedText" name="translated_text" class="textarea-translated" readonly placeholder="Paste or type a script above, pick a language, then click Translate →"></textarea>
         </div>
 
+        <div class="field-divider">Choose an Avatar</div>
+
+        <!-- Avatar section -->
+        <div class="field-group">
+          <div class="avatar-picker-label">
+            <label class="field-label" style="margin-bottom:0;">Avatar <span>Who will present your video</span></label>
+            <a href="{% url 'avatar_library' %}" class="avatar-picker-link">View full library →</a>
+          </div>
+
+          <!-- Tab switcher -->
+          <div class="avatar-tabs">
+            <button type="button" class="avatar-tab active" id="tabLibrary" onclick="switchAvatarTab('library')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              Choose Avatar
+            </button>
+            <button type="button" class="avatar-tab" id="tabUpload" onclick="switchAvatarTab('upload')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload My Own
+            </button>
+          </div>
+
+          <!-- Hidden fields -->
+          <input type="hidden" name="avatar_id"   id="avatarIdField"   value="">
+          <input type="hidden" name="avatar_type" id="avatarTypeField" value="platform">
+
+          <!-- ── PANEL: Library ── -->
+          <div id="panelLibrary" class="avatar-tab-panel">
+            {% if avatars or user_avatars %}
+            <div class="avatar-mini-grid">
+              {% for av in avatars %}
+              <div class="avatar-mini-card" id="mini-{{ av.pk }}"
+                   data-id="{{ av.pk }}" data-name="{{ av.name }}" data-atype="platform"
+                   onclick="pickAvatar(this)">
+                <div class="avatar-mini-check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                {% if av.preview_url %}
+                  <img class="avatar-mini-img" src="{{ av.preview_url }}" alt="{{ av.name }}" loading="lazy">
+                {% else %}
+                  <div class="avatar-mini-img-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                  </div>
+                {% endif %}
+                <div class="avatar-mini-name">{{ av.name }}</div>
+              </div>
+              {% endfor %}
+              {% for ua in user_avatars %}
+              <div class="avatar-mini-card" id="mini-u{{ ua.pk }}"
+                   data-id="{{ ua.pk }}" data-name="{{ ua.name }}" data-atype="user"
+                   onclick="pickAvatar(this)">
+                <div class="avatar-mini-check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="avatar-mine-badge">Mine</div>
+                {% if ua.preview_url %}
+                  <img class="avatar-mini-img" src="{{ ua.preview_url }}" alt="{{ ua.name }}" loading="lazy">
+                {% else %}
+                  <div class="avatar-mini-img-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                  </div>
+                {% endif %}
+                <div class="avatar-mini-name">{{ ua.name }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-avatars-msg">
+              No avatars available yet.
+              {% if request.user.is_staff %}<a href="/admin/video_app/avatar/add/">Add one →</a>{% else %}Upload your own above or check back soon!{% endif %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- ── PANEL: Upload ── -->
+          <div id="panelUpload" class="avatar-tab-panel" style="display:none;">
+            <!-- Drop zone -->
+            <div class="upload-inline-box" id="uploadDropZone">
+              <div class="upload-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="12" cy="8" r="2.5"/><path d="M4 20c0-3.5 3.1-6 8-6s8 2.5 8 6"/></svg>
+              </div>
+              <div class="upload-inline-title">Upload a photo <span class="upload-or-word">or</span> video</div>
+              <div class="upload-inline-sub">Use a clear front-facing photo or a short video clip of yourself</div>
+
+              <!-- Two pick buttons -->
+              <div class="upload-type-btns">
+                <label class="btn-upload-type" for="quickAvatarFile" onclick="setAccept('image')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Upload Photo
+                  <span class="upload-type-hint">JPG · PNG · WEBP</span>
+                </label>
+                <label class="btn-upload-type" for="quickAvatarFile" onclick="setAccept('video')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  Upload Video
+                  <span class="upload-type-hint">MP4 · MOV · WebM</span>
+                </label>
+              </div>
+
+              <input type="file" id="quickAvatarFile" name="quick_avatar_file"
+                     accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
+                     style="display:none;" onchange="onFileSelected(this)">
+              <div class="upload-drag-hint">or drag &amp; drop here</div>
+            </div>
+
+            <!-- Preview after pick -->
+            <div id="uploadPreview" style="display:none;">
+              <div class="upload-preview-row">
+                <div class="upload-preview-icon" id="uploadPreviewIcon">
+                  <!-- swapped by JS -->
+                </div>
+                <div class="upload-preview-info">
+                  <div class="upload-preview-name" id="uploadFileName">file.jpg</div>
+                  <div class="upload-preview-size" id="uploadFileSize">0 MB</div>
+                </div>
+                <button type="button" class="upload-preview-clear" onclick="clearFile()" title="Remove">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <!-- Inline thumb for images -->
+              <div id="uploadImgThumb" style="display:none; margin-bottom:10px;">
+                <img id="uploadThumbImg" src="" alt="Preview"
+                     style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--silk);">
+              </div>
+              <div class="upload-name-row">
+                <input type="text" id="quickAvatarName" name="quick_avatar_name"
+                       placeholder="Give this avatar a name (e.g. My Presenter)"
+                       class="upload-name-input">
+              </div>
+              <div class="upload-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0;color:var(--gold)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                This file will be saved to your avatar library and used for this video.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Actions -->
         <div class="form-actions">
-          <button type="button" class="btn-translate" onclick="translateText()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
-            Translate Script
-          </button>
-          <button type="submit" class="btn-generate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <button type="submit" class="btn-generate" onclick="return validateForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
             <span>Generate Audio</span>
           </button>
         </div>
+        <div class="form-hint">You'll hear the audio first and confirm before the video is generated.</div>
+
       </form>
     </div>
   </div>
@@ -589,7 +536,7 @@
   <!-- Sidebar -->
   <aside class="sidebar">
 
-    <!-- Languages -->
+    <!-- Supported Languages -->
     <div class="info-card">
       <div class="info-card-title">Supported Languages</div>
       <div class="lang-list">
@@ -600,61 +547,52 @@
       </div>
     </div>
 
-    <!-- Latest Video Preview -->
+    <!-- Latest Video -->
     <div class="latest-video-card">
       <div class="latest-video-header">
         <div class="latest-video-title">Latest Video</div>
-        {% if latest_video %}
-        <div class="latest-video-meta">{{ latest_video.created_at }}</div>
-        {% endif %}
+        {% if latest_video %}<div class="latest-video-meta">{{ latest_video.created_at|date:"M d, H:i" }}</div>{% endif %}
       </div>
       <div class="latest-video-player">
-        {% if latest_video %}
-        <video controls preload="metadata">
-          <source src="{{ latest_video.file }}" type="video/mp4">
-        </video>
+        {% if latest_video and latest_video.video_url %}
+          <video controls preload="metadata"><source src="{{ latest_video.video_url }}" type="video/mp4"></video>
         {% else %}
-        <div class="latest-placeholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          No videos generated yet
-        </div>
+          <div class="latest-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            No videos yet
+          </div>
         {% endif %}
       </div>
-      {% if latest_video %}
+      {% if latest_video and latest_video.video_url %}
       <div class="latest-video-actions">
-        <a href="{{ latest_video.file }}" download class="latest-action">
+        <a href="{{ latest_video.video_url }}" download class="latest-action">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </a>
-        <button class="latest-action" onclick="navigator.share && navigator.share({url: '{{ latest_video.file }}'})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Share
-        </button>
-        <button class="latest-action">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          Delete
-        </button>
       </div>
       {% endif %}
     </div>
 
     <!-- Recent Generations -->
     <div class="info-card">
-      <div class="info-card-title">Recent Generations</div>
+      <div class="info-card-title">
+        Recent Videos
+        <a href="{% url 'my_videos' %}">View all →</a>
+      </div>
       <div class="recent-list">
         {% if videos %}
-          {% for video in videos|slice:":5" %}
-          <a href="{% url 'dashboard' %}" class="recent-item">
+          {% for video in videos %}
+          <a href="{{ video.video_url }}" target="_blank" class="recent-item">
             <div class="recent-thumb">
-              {% if video.thumbnail %}
-              <img src="{{ video.thumbnail }}" alt="{{ video.file }}" style="width:100%;height:100%;object-fit:cover;">
+              {% if video.avatar and video.avatar.preview_url %}
+                <img src="{{ video.avatar.preview_url }}" alt="{{ video.avatar.name }}">
               {% else %}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
               {% endif %}
             </div>
             <div class="recent-info">
-              <div class="recent-name">{{ video.file }}</div>
-              <div class="recent-time">{{ video.created_at }}</div>
+              <div class="recent-name">{{ video.avatar_display_name }} · {{ video.language|upper }}</div>
+              <div class="recent-time">{{ video.created_at|date:"M d, H:i" }}{% if video.duration_s %} · {{ video.duration_s|floatformat:1 }}s{% endif %}</div>
             </div>
             <div class="recent-play">
               <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -662,21 +600,7 @@
           </a>
           {% endfor %}
         {% else %}
-          <!-- Demo placeholders -->
-          {% for item in "123" %}
-          <div class="recent-item">
-            <div class="recent-thumb">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            </div>
-            <div class="recent-info">
-              <div class="recent-name">Avatar_0{{ item }}.mp4</div>
-              <div class="recent-time">No videos yet</div>
-            </div>
-            <div class="recent-play">
-              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
-          </div>
-          {% endfor %}
+          <div class="recent-empty">No videos yet.<br>Generate your first one above!</div>
         {% endif %}
       </div>
     </div>
@@ -685,14 +609,13 @@
     <div class="info-card">
       <div class="info-card-title">Tips for best results</div>
       <div class="tip-list">
-        <div class="tip-item"><div class="tip-num">1</div><span>Write naturally — avoid overly technical jargon for clearest speech synthesis.</span></div>
-        <div class="tip-item"><div class="tip-num">2</div><span>Translate first, then review before generating audio.</span></div>
-        <div class="tip-item"><div class="tip-num">3</div><span>Use punctuation to control pacing and pauses in voice output.</span></div>
+        <div class="tip-item"><div class="tip-num">1</div><span>Write naturally — avoid technical jargon for clearest voice synthesis.</span></div>
+        <div class="tip-item"><div class="tip-num">2</div><span>Translate first, then review the script before generating audio.</span></div>
+        <div class="tip-item"><div class="tip-num">3</div><span>Choose an avatar that matches your content's tone and audience.</span></div>
       </div>
     </div>
 
   </aside>
-
 </div>
 
 {% endblock %}
@@ -700,29 +623,176 @@
 
 {% block extra_js %}
 <script>
+  // ── Char count ──────────────────────────────
   function updateCount(el) {
     document.getElementById('charCount').textContent = el.value.length;
   }
 
+  // ── Avatar tab switcher ─────────────────────
+  function switchAvatarTab(tab) {
+    const isLib = tab === 'library';
+    document.getElementById('tabLibrary').classList.toggle('active', isLib);
+    document.getElementById('tabUpload').classList.toggle('active', !isLib);
+    document.getElementById('panelLibrary').style.display = isLib ? '' : 'none';
+    document.getElementById('panelUpload').style.display  = isLib ? 'none' : '';
+
+    // Clear avatar selection when switching tabs
+    if (isLib) {
+      clearUploadMode();
+    } else {
+      clearLibrarySelection();
+    }
+  }
+
+  // ── Library picker ──────────────────────────
+  function pickAvatar(card) {
+    document.querySelectorAll('.avatar-mini-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('avatarIdField').value   = card.dataset.id;
+    document.getElementById('avatarTypeField').value = card.dataset.atype || 'platform';
+  }
+
+  function clearLibrarySelection() {
+    document.querySelectorAll('.avatar-mini-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('avatarIdField').value   = '';
+    document.getElementById('avatarTypeField').value = 'platform';
+  }
+
+  // ── Inline upload ────────────────────────────
+  const IMAGE_TYPES = ['image/jpeg','image/png','image/webp'];
+  const VIDEO_TYPES = ['video/mp4','video/quicktime','video/webm'];
+
+  function setAccept(type) {
+    // Called before the file dialog opens via the label click
+    const input = document.getElementById('quickAvatarFile');
+    input.accept = type === 'image' ? 'image/jpeg,image/png,image/webp'
+                                    : 'video/mp4,video/quicktime,video/webm';
+  }
+
+  function onFileSelected(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const isImage = IMAGE_TYPES.includes(file.type);
+    const isVideo = VIDEO_TYPES.includes(file.type);
+
+    if (!isImage && !isVideo) {
+      alert('Please upload a JPG/PNG/WEBP image or an MP4/MOV/WebM video.');
+      input.value = '';
+      return;
+    }
+
+    const MAX_MB = isImage ? 10 : 200;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      alert(`File is too large. ${isImage ? 'Photos' : 'Videos'} must be under ${MAX_MB} MB.`);
+      input.value = '';
+      return;
+    }
+
+    // File info row
+    document.getElementById('uploadFileName').textContent = file.name;
+    document.getElementById('uploadFileSize').textContent = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+    // Icon in preview row
+    const iconEl = document.getElementById('uploadPreviewIcon');
+    iconEl.innerHTML = isImage
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:rgba(255,255,255,.7)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:rgba(255,255,255,.7)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
+    iconEl.style.background = isImage ? '#4f46e5' : 'var(--charcoal)';
+
+    // Image thumbnail preview
+    const thumbWrap = document.getElementById('uploadImgThumb');
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('uploadThumbImg').src = e.target.result;
+        thumbWrap.style.display = '';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      thumbWrap.style.display = 'none';
+    }
+
+    document.getElementById('uploadDropZone').style.display = 'none';
+    document.getElementById('uploadPreview').style.display  = '';
+    document.getElementById('avatarIdField').value   = '';
+    document.getElementById('avatarTypeField').value = 'quick_upload';
+  }
+
+  function clearFile() {
+    document.getElementById('quickAvatarFile').value = '';
+    document.getElementById('uploadDropZone').style.display = '';
+    document.getElementById('uploadPreview').style.display  = 'none';
+    document.getElementById('uploadImgThumb').style.display = 'none';
+    document.getElementById('avatarTypeField').value = 'platform';
+  }
+
+  function clearUploadMode() {
+    clearFile();
+    const n = document.getElementById('quickAvatarName');
+    if (n) n.value = '';
+  }
+
+  // ── Drag-and-drop on the upload box ──────────
+  const dz = document.getElementById('uploadDropZone');
+  if (dz) {
+    dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const allowed = [...IMAGE_TYPES, ...VIDEO_TYPES];
+      if (allowed.includes(file.type)) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        const input = document.getElementById('quickAvatarFile');
+        input.files = dt.files;
+        onFileSelected(input);
+      } else {
+        alert('Please drop a JPG/PNG/WEBP image or MP4/MOV/WebM video.');
+      }
+    });
+  }
+
+  // ── Form validation ──────────────────────────
+  function validateForm() {
+    const text     = document.getElementById('inputText').value.trim();
+    const avatarId = document.getElementById('avatarIdField').value;
+    const atype    = document.getElementById('avatarTypeField').value;
+    const theFile  = document.getElementById('quickAvatarFile').files[0];
+
+    if (!text) { alert('Please enter a script before generating.'); return false; }
+
+    if (atype === 'quick_upload') {
+      if (!theFile) { alert('Please select a photo or video file.'); return false; }
+      const nameField = document.getElementById('quickAvatarName');
+      if (!nameField.value.trim()) { nameField.focus(); alert('Please give your avatar a name.'); return false; }
+    } else {
+      if (!avatarId) { alert('Please select an avatar before generating.'); return false; }
+    }
+    return true;
+  }
+
+  // ── Translation ──────────────────────────────
   function translateText() {
-    const text = document.getElementById("inputText").value;
-    const lang = document.getElementById("language").value;
+    const text = document.getElementById('inputText').value;
+    const lang = document.getElementById('language').value;
+    if (text.trim() === '') { alert('Please enter a script first.'); return; }
 
-    if (text.trim() === "") { alert("Please enter a script first."); return; }
-
-    const btn = document.querySelector('.btn-translate');
-    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Translating…`;
+    const btn = document.getElementById('translateBtn');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Translating…`;
     btn.disabled = true;
 
     fetch(`{% url 'translate' %}?text=${encodeURIComponent(text)}&lang=${lang}`)
       .then(r => r.json())
       .then(data => {
-        document.getElementById("translatedText").value = data.translated_text;
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Translated`;
+        document.getElementById('translatedText').value = data.translated_text;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Translated!`;
         btn.disabled = false;
       })
       .catch(() => {
-        btn.textContent = 'Translate Script';
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg> Translate`;
         btn.disabled = false;
       });
   }
