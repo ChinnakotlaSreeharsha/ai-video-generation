@@ -22,3 +22,13 @@ storage/temp/
 
 # Logs
 logs/
+*.log
+
+# Outputs
+outputs/
+
+# Static
+staticfiles/
+
+# Env
+.env
