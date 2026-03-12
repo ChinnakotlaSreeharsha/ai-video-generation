@@ -19,3 +19,4 @@ requests==2.32.5
 tqdm==4.67.3
 
 googletrans==4.0.0-rc1
+gTTS==2.5.1
