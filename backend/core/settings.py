@@ -6,6 +6,8 @@ Production ready for Render deployment.
 import os
 from pathlib import Path
 
+import cloudinary
+
 # --------------------------------------------------
 # Base Directory
 # --------------------------------------------------
@@ -24,7 +26,7 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     "sree-ai-video-generation.onrender.com",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
 ]
 
 
@@ -50,10 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise for static files
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -91,7 +90,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # --------------------------------------------------
-# Database
+# Database — SQLite
 # --------------------------------------------------
 
 DATABASES = {
@@ -107,18 +106,10 @@ DATABASES = {
 # --------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
@@ -127,11 +118,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # --------------------------------------------------
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -140,22 +128,30 @@ USE_TZ = True
 # --------------------------------------------------
 
 STATIC_URL = '/static/'
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "video_app/static",
-]
-
+STATICFILES_DIRS = [BASE_DIR / "video_app/static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 # --------------------------------------------------
-# Media / AI Video Outputs
+# Media — kept for ML pipeline temp files only.
+# All final audio/video is uploaded to Cloudinary.
 # --------------------------------------------------
 
 MEDIA_URL = "/outputs/"
 MEDIA_ROOT = BASE_DIR / "outputs"
+
+
+# --------------------------------------------------
+# Cloudinary
+# --------------------------------------------------
+
+cloudinary.config(
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
+    api_key    = os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET", ""),
+    secure     = True,
+)
 
 
 # --------------------------------------------------
@@ -172,7 +168,6 @@ LOGOUT_REDIRECT_URL = "/"
 # --------------------------------------------------
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -188,12 +183,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Logging
 # --------------------------------------------------
 
-(BASE_DIR / "logs").mkdir(exist_ok=True)
+_log_dir = BASE_DIR / "logs"
+try:
+    _log_dir.mkdir(exist_ok=True)
+    _file_handler_available = True
+except Exception:
+    _file_handler_available = False
+
+_video_app_handlers = ["console", "file"] if _file_handler_available else ["console"]
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "formatters": {
         "verbose": {
             "format": "[{asctime}] {levelname} {name} — {message}",
@@ -205,30 +206,26 @@ LOGGING = {
             "style": "{",
         },
     },
-
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "video_app.log",
+            "filename": str(_log_dir / "video_app.log"),
             "maxBytes": 5 * 1024 * 1024,
             "backupCount": 5,
             "formatter": "verbose",
             "encoding": "utf-8",
         },
     },
-
     "loggers": {
         "video_app": {
-            "handlers": ["console", "file"],
+            "handlers": _video_app_handlers,
             "level": "INFO",
             "propagate": False,
         },
-
         "django": {
             "handlers": ["console"],
             "level": "WARNING",

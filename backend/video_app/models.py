@@ -11,8 +11,14 @@ from django.utils.text import slugify
 
 class UserProfile(models.Model):
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    # Legacy ImageField kept so old rows don't break; new uploads go to Cloudinary
     avatar = models.ImageField(upload_to="profile_avatars/", blank=True, null=True)
-    bio    = models.TextField(blank=True, default="")
+
+    # Cloudinary URL for profile photo (replaces local file storage)
+    avatar_cloudinary_url = models.URLField(blank=True, default="")
+
+    bio = models.TextField(blank=True, default="")
 
     default_language = models.CharField(max_length=10, default="en")
     video_quality    = models.CharField(max_length=10, default="hd")
@@ -30,8 +36,19 @@ class UserProfile(models.Model):
 
     @property
     def avatar_url(self):
+        """
+        Returns the best available avatar URL:
+        1. Cloudinary URL (new uploads)
+        2. Legacy local ImageField URL (old uploads)
+        3. Empty string (no avatar)
+        """
+        if self.avatar_cloudinary_url:
+            return self.avatar_cloudinary_url
         if self.avatar:
-            return self.avatar.url
+            try:
+                return self.avatar.url
+            except Exception:
+                return ""
         return ""
 
     @property
@@ -128,14 +145,20 @@ class Avatar(models.Model):
     @property
     def preview_url(self):
         if self.preview_image:
-            return self.preview_image.url
+            try:
+                return self.preview_image.url
+            except Exception:
+                return ""
         return ""
 
     @property
     def source_video_path(self):
         """Absolute filesystem path to the source video, for pipeline use."""
         if self.source_video:
-            return self.source_video.path
+            try:
+                return self.source_video.path
+            except Exception:
+                return ""
         return ""
 
 
@@ -218,13 +241,19 @@ class UserAvatar(models.Model):
     @property
     def preview_url(self):
         if self.preview_image:
-            return self.preview_image.url
+            try:
+                return self.preview_image.url
+            except Exception:
+                return ""
         return ""
 
     @property
     def source_video_path(self):
         if self.source_video:
-            return self.source_video.path
+            try:
+                return self.source_video.path
+            except Exception:
+                return ""
         return ""
 
     @property
@@ -244,6 +273,7 @@ class UserAvatar(models.Model):
 class VideoGeneration(models.Model):
     """
     Stores every video pipeline run.
+    audio_file / video_file now store full Cloudinary URLs.
     avatar FK  → platform Avatar  (nullable for old rows).
     avatar_name → legacy plain-text fallback.
     """
@@ -268,11 +298,14 @@ class VideoGeneration(models.Model):
     # Legacy name field kept for pre-FK rows
     avatar_name = models.CharField(max_length=255, blank=True, default="")
 
-    audio_file = models.CharField(max_length=500, blank=True, default="")
-    video_file = models.CharField(max_length=500, blank=True, default="")
+    # Stores full Cloudinary URLs (e.g. https://res.cloudinary.com/...)
+    # max_length bumped to 1000 to safely hold long Cloudinary URLs
+    audio_file = models.CharField(max_length=1000, blank=True, default="")
+    video_file = models.CharField(max_length=1000, blank=True, default="")
 
     status     = models.CharField(max_length=10, choices=STATUS_CHOICES, default="done")
-    duration_s = models.FloatField(null=True, blank=True, help_text="Pipeline wall-clock seconds")
+    duration_s = models.FloatField(null=True, blank=True,
+                                   help_text="Pipeline wall-clock seconds")
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -287,10 +320,16 @@ class VideoGeneration(models.Model):
 
     @property
     def video_url(self):
-        from django.conf import settings as djsettings
-        if self.video_file:
-            return djsettings.MEDIA_URL.rstrip("/") + "/" + self.video_file.lstrip("/")
-        return ""
+        """
+        Returns the video URL directly.
+        video_file now stores a full Cloudinary URL so no path manipulation needed.
+        """
+        return self.video_file or ""
+
+    @property
+    def audio_url(self):
+        """Returns the audio URL directly (Cloudinary URL)."""
+        return self.audio_file or ""
 
     @property
     def thumbnail_url(self):

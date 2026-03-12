@@ -6,6 +6,10 @@ sys.path.append(BASE_DIR)
 
 import time
 import logging
+import tempfile
+
+import cloudinary
+import cloudinary.uploader
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -31,6 +35,46 @@ def _log_step(step_name: str, start: float, extra: str = "") -> None:
     elapsed = time.perf_counter() - start
     suffix  = f" | {extra}" if extra else ""
     logger.info("[%s] completed in %.3fs%s", step_name, elapsed, suffix)
+
+
+# ─────────────────────────────────────────────
+# Cloudinary helpers
+# ─────────────────────────────────────────────
+
+def _upload_local_file_to_cloudinary(local_path: str, resource_type: str = "auto",
+                                      folder: str = "stackly") -> str:
+    """Upload a local filesystem path to Cloudinary. Returns secure URL."""
+    result = cloudinary.uploader.upload(
+        local_path,
+        resource_type=resource_type,
+        folder=folder,
+        use_filename=True,
+        unique_filename=True,
+    )
+    return result["secure_url"]
+
+
+def _upload_django_file_to_cloudinary(file_obj, resource_type: str = "auto",
+                                       folder: str = "stackly") -> str:
+    """
+    Upload a Django InMemoryUploadedFile or TemporaryUploadedFile to Cloudinary.
+    Writes to a named temp file first. Returns secure URL.
+    """
+    suffix = os.path.splitext(file_obj.name)[-1] if file_obj.name else ""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        for chunk in file_obj.chunks():
+            tmp.write(chunk)
+        tmp_path = tmp.name
+    try:
+        url = _upload_local_file_to_cloudinary(tmp_path,
+                                                resource_type=resource_type,
+                                                folder=folder)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+    return url
 
 
 # ─────────────────────────────────────────────
@@ -87,7 +131,7 @@ def register_view(request):
 
         try:
             t_user = time.perf_counter()
-            user = User.objects.create_user(
+            user   = User.objects.create_user(
                 username=username, email=email, password=password1,
                 first_name=first_name, last_name=last_name,
             )
@@ -101,19 +145,19 @@ def register_view(request):
             try:
                 t_avatar    = time.perf_counter()
                 avatar_file = request.FILES["avatar"]
-                avatar_dir  = os.path.join(settings.MEDIA_ROOT, "profile_avatars")
-                os.makedirs(avatar_dir, exist_ok=True)
-                avatar_path = os.path.join(avatar_dir, f"user_{user.id}_{avatar_file.name}")
-                with open(avatar_path, "wb+") as f:
-                    for chunk in avatar_file.chunks():
-                        f.write(chunk)
-                user.profile.avatar = f"profile_avatars/user_{user.id}_{avatar_file.name}"
+                avatar_url  = _upload_django_file_to_cloudinary(
+                    avatar_file,
+                    resource_type="image",
+                    folder="stackly/profile_avatars",
+                )
+                user.profile.avatar_cloudinary_url = avatar_url
                 user.profile.save()
                 _log_step("register:save_avatar", t_avatar, f"file={avatar_file.name}")
             except Exception as exc:
                 logger.warning("[register] avatar upload failed | user_id=%s | %s",
                                user.id, exc, exc_info=True)
-                messages.warning(request, "Profile photo could not be saved, but your account was created.")
+                messages.warning(request,
+                    "Profile photo could not be saved, but your account was created.")
 
         login(request, user)
         _log_step("register:total", t0, f"user={username}")
@@ -203,7 +247,8 @@ def update_profile(request):
             user.email      = request.POST.get("email",      user.email).strip()
 
             new_username = request.POST.get("username", user.username).strip()
-            if new_username != user.username and User.objects.filter(username=new_username).exists():
+            if new_username != user.username and \
+                    User.objects.filter(username=new_username).exists():
                 messages.error(request, "That username is already taken.")
                 return redirect("profile_settings")
             user.username = new_username
@@ -213,16 +258,14 @@ def update_profile(request):
             if request.FILES.get("avatar"):
                 t_avatar    = time.perf_counter()
                 avatar_file = request.FILES["avatar"]
-                avatar_dir  = os.path.join(settings.MEDIA_ROOT, "profile_avatars")
-                os.makedirs(avatar_dir, exist_ok=True)
-                ext       = avatar_file.name.rsplit(".", 1)[-1]
-                filename  = f"user_{user.id}.{ext}"
-                full_path = os.path.join(avatar_dir, filename)
-                with open(full_path, "wb+") as f:
-                    for chunk in avatar_file.chunks():
-                        f.write(chunk)
-                profile.avatar = f"profile_avatars/{filename}"
-                _log_step("update_profile:save_avatar", t_avatar, f"file={filename}")
+                avatar_url  = _upload_django_file_to_cloudinary(
+                    avatar_file,
+                    resource_type="image",
+                    folder="stackly/profile_avatars",
+                )
+                profile.avatar_cloudinary_url = avatar_url
+                _log_step("update_profile:save_avatar", t_avatar,
+                          f"file={avatar_file.name}")
 
             user.save()
             profile.save()
@@ -230,7 +273,8 @@ def update_profile(request):
             messages.success(request, "Profile updated successfully.")
 
         except Exception as exc:
-            logger.error("[update_profile] failed | user=%s | %s", user.username, exc, exc_info=True)
+            logger.error("[update_profile] failed | user=%s | %s",
+                         user.username, exc, exc_info=True)
             messages.error(request, "An unexpected error occurred. Please try again.")
 
     elif form_type == "password":
@@ -239,7 +283,8 @@ def update_profile(request):
         new_pw2 = request.POST.get("new_password2", "")
 
         if not user.check_password(old_pw):
-            logger.warning("[update_profile] incorrect current password | user=%s", user.username)
+            logger.warning("[update_profile] incorrect current password | user=%s",
+                           user.username)
             messages.error(request, "Current password is incorrect.")
             return redirect("profile_settings#security")
 
@@ -286,7 +331,8 @@ def delete_account(request):
         logger.info("[delete_account] completed | user=%s", username)
         messages.success(request, "Your account has been permanently deleted.")
     except Exception as exc:
-        logger.error("[delete_account] failed | user=%s | %s", username, exc, exc_info=True)
+        logger.error("[delete_account] failed | user=%s | %s",
+                     username, exc, exc_info=True)
         messages.error(request, "An unexpected error occurred. Please contact support.")
     return redirect("home")
 
@@ -299,19 +345,19 @@ def delete_account(request):
 def dashboard(request):
     from .models import VideoGeneration, Avatar, UserAvatar
 
-    videos       = VideoGeneration.objects.filter(user=request.user, status="done").select_related("avatar")
-    latest_video = videos.first()
-
-    # Merge platform avatars + user's own usable avatars for the mini-picker
+    videos           = VideoGeneration.objects.filter(
+        user=request.user, status="done"
+    ).select_related("avatar")
+    latest_video     = videos.first()
     platform_avatars = list(Avatar.objects.filter(is_active=True))
     user_avatars_qs  = UserAvatar.objects.filter(owner=request.user, is_active=True)
     user_avatars     = [ua for ua in user_avatars_qs if ua.is_usable]
 
     return render(request, "video_app/dashboard.html", {
-        "videos":          videos[:5],
-        "latest_video":    latest_video,
-        "avatars":         platform_avatars,
-        "user_avatars":    user_avatars,
+        "videos":       videos[:5],
+        "latest_video": latest_video,
+        "avatars":      platform_avatars,
+        "user_avatars": user_avatars,
     })
 
 
@@ -321,22 +367,15 @@ def dashboard(request):
 
 @login_required
 def avatar_library(request):
-    """
-    Full avatar selection grid.
-    Shows platform avatars + the logged-in user's own usable UserAvatars.
-    Both lists respect the ?category= filter.
-    """
     from .models import Avatar, UserAvatar
 
     category   = request.GET.get("category", "")
     categories = Avatar.CATEGORY_CHOICES
 
-    # Platform avatars
     platform_qs = Avatar.objects.filter(is_active=True)
     if category:
         platform_qs = platform_qs.filter(category=category)
 
-    # User's own avatars: private (always usable) + approved public
     user_qs = (
         UserAvatar.objects.filter(owner=request.user, is_active=True, is_public=False)
         | UserAvatar.objects.filter(
@@ -361,10 +400,6 @@ def avatar_library(request):
 
 @login_required
 def user_avatar_upload(request):
-    """
-    Shows the upload form and the user's existing avatar uploads.
-    POST: validates, saves, sets review_status automatically.
-    """
     from .models import UserAvatar
 
     user_avatars = UserAvatar.objects.filter(owner=request.user, is_active=True)
@@ -392,25 +427,26 @@ def user_avatar_upload(request):
         MAX_IMG_MB   = 5
 
         if source_video_file.size > MAX_VIDEO_MB * 1024 * 1024:
-            messages.error(request, f"Source video exceeds the {MAX_VIDEO_MB} MB limit.")
+            messages.error(request,
+                f"Source video exceeds the {MAX_VIDEO_MB} MB limit.")
             return render(request, "video_app/user_avatar_upload.html",
                           {"user_avatars": user_avatars})
 
         preview_file = request.FILES.get("preview_image")
         if preview_file and preview_file.size > MAX_IMG_MB * 1024 * 1024:
-            messages.error(request, f"Thumbnail image exceeds the {MAX_IMG_MB} MB limit.")
+            messages.error(request,
+                f"Thumbnail image exceeds the {MAX_IMG_MB} MB limit.")
             return render(request, "video_app/user_avatar_upload.html",
                           {"user_avatars": user_avatars})
 
         try:
             ua = UserAvatar(
-                owner        = request.user,
-                name         = name,
-                category     = category,
-                description  = description,
-                is_public    = is_public,
-                source_video = source_video_file,
-                # Private avatars are auto-approved; public ones need review
+                owner         = request.user,
+                name          = name,
+                category      = category,
+                description   = description,
+                is_public     = is_public,
+                source_video  = source_video_file,
                 review_status = "approved" if not is_public else "pending",
             )
             if preview_file:
@@ -430,7 +466,8 @@ def user_avatar_upload(request):
         except Exception as exc:
             logger.error("[user_avatar_upload] failed | user=%s | %s",
                          request.user.username, exc, exc_info=True)
-            messages.error(request, "An error occurred while saving your avatar. Please try again.")
+            messages.error(request,
+                "An error occurred while saving your avatar. Please try again.")
 
         return redirect("user_avatar_upload")
 
@@ -444,7 +481,6 @@ def user_avatar_upload(request):
 
 @login_required
 def user_avatar_delete(request, pk):
-    """Soft-delete a user's own avatar (sets is_active=False)."""
     from .models import UserAvatar
 
     if request.method != "POST":
@@ -474,19 +510,6 @@ def my_videos(request):
 
 
 # ─────────────────────────────────────────────
-# HELPER: absolute path → browser URL
-# ─────────────────────────────────────────────
-
-def path_to_url(abs_path):
-    media_root = str(settings.MEDIA_ROOT).replace("\\", "/")
-    abs_path   = str(abs_path).replace("\\", "/")
-    if abs_path.startswith(media_root):
-        relative = abs_path[len(media_root):].lstrip("/")
-        return settings.MEDIA_URL.rstrip("/") + "/" + relative
-    return abs_path
-
-
-# ─────────────────────────────────────────────
 # Stage 1 — Generate Audio
 # ─────────────────────────────────────────────
 
@@ -495,11 +518,11 @@ def generate_audio(request):
     if request.method != "POST":
         return redirect("dashboard")
 
-    t0        = time.perf_counter()
-    text      = request.POST.get("text", "").strip()
-    language  = request.POST.get("language", "en")
-    avatar_id = request.POST.get("avatar_id", "").strip()
-    avatar_type = request.POST.get("avatar_type", "platform").strip()  # "platform" or "user"
+    t0          = time.perf_counter()
+    text        = request.POST.get("text", "").strip()
+    language    = request.POST.get("language", "en")
+    avatar_id   = request.POST.get("avatar_id", "").strip()
+    avatar_type = request.POST.get("avatar_type", "platform").strip()
 
     logger.info("[generate_audio] user=%s lang=%s avatar_id=%s avatar_type=%s",
                 request.user.username, language, avatar_id, avatar_type)
@@ -508,7 +531,7 @@ def generate_audio(request):
         messages.error(request, "Please enter some text before generating audio.")
         return redirect("dashboard")
 
-    # ── Handle quick_upload: save UserAvatar first, then treat as user avatar ──
+    # ── Handle quick_upload ───────────────────
     if avatar_type == "quick_upload":
         from .models import UserAvatar
 
@@ -528,13 +551,15 @@ def generate_audio(request):
 
         if not is_image and not is_video:
             messages.error(request,
-                "Unsupported file type. Please upload a JPG/PNG/WEBP photo or MP4/MOV/WebM video.")
+                "Unsupported file type. Please upload a JPG/PNG/WEBP photo "
+                "or MP4/MOV/WebM video.")
             return redirect("dashboard")
 
         MAX_MB = 10 if is_image else 200
         if quick_file.size > MAX_MB * 1024 * 1024:
             messages.error(request,
-                f"File exceeds the {MAX_MB} MB limit for {'photos' if is_image else 'videos'}.")
+                f"File exceeds the {MAX_MB} MB limit for "
+                f"{'photos' if is_image else 'videos'}.")
             return redirect("dashboard")
 
         try:
@@ -548,10 +573,8 @@ def generate_audio(request):
             if is_video:
                 ua.source_video = quick_file
             else:
-                # For images: store as preview_image; source_video will be
-                # set by the pipeline (image → video conversion happens there)
                 ua.preview_image = quick_file
-                ua.source_video  = quick_file   # pipeline receives the image path
+                ua.source_video  = quick_file
             ua.save()
             avatar_id   = str(ua.pk)
             avatar_type = "user"
@@ -570,26 +593,29 @@ def generate_audio(request):
     # ── Resolve avatar ────────────────────────
     from .models import Avatar, UserAvatar
 
-    avatar_obj  = None   # platform Avatar instance (or None for user avatar)
+    avatar_obj  = None
     avatar_name = ""
 
     if avatar_type == "user":
         try:
-            ua = UserAvatar.objects.get(pk=avatar_id, owner=request.user, is_active=True)
+            ua = UserAvatar.objects.get(pk=avatar_id, owner=request.user,
+                                        is_active=True)
             if not ua.is_usable:
-                messages.error(request, "That avatar is not available yet. Please choose another.")
+                messages.error(request,
+                    "That avatar is not available yet. Please choose another.")
                 return redirect("dashboard")
             avatar_name = ua.name
-            # Store user-avatar pk in session; avatar_obj stays None
         except UserAvatar.DoesNotExist:
-            messages.error(request, "The selected avatar is not available. Please choose another.")
+            messages.error(request,
+                "The selected avatar is not available. Please choose another.")
             return redirect("dashboard")
     else:
         try:
             avatar_obj  = Avatar.objects.get(pk=avatar_id, is_active=True)
             avatar_name = avatar_obj.name
         except Avatar.DoesNotExist:
-            messages.error(request, "The selected avatar is not available. Please choose another.")
+            messages.error(request,
+                "The selected avatar is not available. Please choose another.")
             return redirect("dashboard")
 
     # ── TTS ───────────────────────────────────
@@ -603,17 +629,27 @@ def generate_audio(request):
         messages.error(request, f"Audio generation failed: {exc}")
         return redirect("dashboard")
 
+    # ── Upload audio to Cloudinary ────────────
+    # NOTE: Cloudinary uses resource_type="video" for audio files (mp3/wav etc.)
     try:
-        audio_url = path_to_url(audio_abs_path)
+        t_up      = time.perf_counter()
+        audio_url = _upload_local_file_to_cloudinary(
+            str(audio_abs_path),
+            resource_type="video",
+            folder="stackly/audio",
+        )
+        _log_step("generate_audio:cloudinary_upload", t_up, f"url={audio_url}")
     except Exception as exc:
-        logger.error("[generate_audio] path_to_url failed | %s", exc)
-        audio_url = str(audio_abs_path)
+        logger.error("[generate_audio] Cloudinary audio upload failed | user=%s | %s",
+                     request.user.username, exc, exc_info=True)
+        messages.error(request, f"Audio upload failed: {exc}")
+        return redirect("dashboard")
 
     # ── Save to session ───────────────────────
     request.session["text"]           = text
     request.session["language"]       = language
-    request.session["audio_abs_path"] = str(audio_abs_path)
-    request.session["audio_url"]      = audio_url
+    request.session["audio_abs_path"] = str(audio_abs_path)  # local path for pipeline
+    request.session["audio_url"]      = audio_url            # Cloudinary URL for browser
     request.session["avatar_id"]      = avatar_id
     request.session["avatar_type"]    = avatar_type
 
@@ -623,7 +659,7 @@ def generate_audio(request):
     return render(request, "video_app/result.html", {
         "audio_path":  audio_url,
         "avatar_name": avatar_name,
-        "avatar":      avatar_obj,   # None for user-avatars (template should handle)
+        "avatar":      avatar_obj,
     })
 
 
@@ -639,7 +675,9 @@ def translate_api(request):
     logger.info("[translate_api] lang=%s text_len=%d", lang, len(text))
 
     if not text or not lang:
-        return JsonResponse({"error": "Both 'text' and 'lang' parameters are required."}, status=400)
+        return JsonResponse(
+            {"error": "Both 'text' and 'lang' parameters are required."}, status=400
+        )
 
     try:
         translated = translate_text(text, lang)
@@ -669,7 +707,6 @@ def process_avatar(request):
     """
     Runs the Wav2Lip pipeline.
     Supports both platform Avatar and user-uploaded UserAvatar.
-    Avatar type is determined from POST data or the session.
     """
     if request.method != "POST":
         return redirect("avatar_library")
@@ -679,22 +716,26 @@ def process_avatar(request):
 
     # ── Resolve avatar id + type ──────────────
     avatar_id   = request.POST.get("avatar_id")   or request.session.get("avatar_id")
-    avatar_type = request.POST.get("avatar_type") or request.session.get("avatar_type", "platform")
+    avatar_type = (request.POST.get("avatar_type")
+                   or request.session.get("avatar_type", "platform"))
 
     if not avatar_id:
-        messages.error(request, "No avatar selected. Please choose one and generate audio first.")
+        messages.error(request,
+            "No avatar selected. Please choose one and generate audio first.")
         return redirect("dashboard")
 
     # ── Resolve avatar object + source path ───
-    avatar_path  = None
-    avatar_name  = ""
-    avatar_fk    = None   # platform Avatar FK for VideoGeneration (None for UserAvatar)
+    avatar_path = None
+    avatar_name = ""
+    avatar_fk   = None
 
     if avatar_type == "user":
         try:
-            ua = UserAvatar.objects.get(pk=avatar_id, owner=request.user, is_active=True)
+            ua = UserAvatar.objects.get(pk=avatar_id, owner=request.user,
+                                        is_active=True)
             if not ua.is_usable:
-                messages.error(request, f"'{ua.name}' is not available. Please choose another.")
+                messages.error(request,
+                    f"'{ua.name}' is not available. Please choose another.")
                 return redirect("avatar_library")
             avatar_path = ua.source_video_path
             avatar_name = ua.name
@@ -703,7 +744,7 @@ def process_avatar(request):
             return redirect("avatar_library")
     else:
         try:
-            av = Avatar.objects.get(pk=avatar_id, is_active=True)
+            av          = Avatar.objects.get(pk=avatar_id, is_active=True)
             avatar_path = av.source_video_path
             avatar_name = av.name
             avatar_fk   = av
@@ -715,7 +756,8 @@ def process_avatar(request):
         logger.error("[process_avatar] source video missing | avatar=%s path=%s",
                      avatar_name, avatar_path)
         messages.error(request,
-            f"Source video for '{avatar_name}' not found on disk. Please contact support.")
+            f"Source video for '{avatar_name}' not found on disk. "
+            "Please contact support.")
         return redirect("avatar_library")
 
     # ── Validate session data ─────────────────
@@ -723,7 +765,8 @@ def process_avatar(request):
     language = request.session.get("language")
 
     if not text or not language:
-        logger.warning("[process_avatar] missing session | user=%s", request.user.username)
+        logger.warning("[process_avatar] missing session | user=%s",
+                       request.user.username)
         messages.error(request, "Session expired. Please generate audio again.")
         return redirect("dashboard")
 
@@ -734,7 +777,8 @@ def process_avatar(request):
     try:
         t_pipe         = time.perf_counter()
         video_abs_path = run_pipeline(text, language, avatar_path)
-        _log_step("process_avatar:pipeline", t_pipe, f"lang={language} avatar={avatar_name}")
+        _log_step("process_avatar:pipeline", t_pipe,
+                  f"lang={language} avatar={avatar_name}")
     except Exception as exc:
         logger.error("[process_avatar] pipeline failed | user=%s | %s",
                      request.user.username, exc, exc_info=True)
@@ -743,45 +787,42 @@ def process_avatar(request):
             user        = request.user,
             language    = language,
             input_text  = text,
-            audio_file  = request.session.get("audio_abs_path", ""),
+            audio_file  = request.session.get("audio_url", ""),
             avatar      = avatar_fk,
             avatar_name = avatar_name,
             status      = "failed",
             duration_s  = round(time.perf_counter() - t0, 2),
         )
 
-        messages.error(request, f"Video generation failed: {exc}. Please try again.")
+        messages.error(request,
+            f"Video generation failed: {exc}. Please try again.")
         return redirect("avatar_library")
 
-    # ── Resolve URLs ──────────────────────────
+    # ── Upload video to Cloudinary ────────────
     try:
-        video_url = path_to_url(video_abs_path)
+        t_up      = time.perf_counter()
+        video_url = _upload_local_file_to_cloudinary(
+            str(video_abs_path),
+            resource_type="video",
+            folder="stackly/videos",
+        )
+        _log_step("process_avatar:cloudinary_upload", t_up, f"url={video_url}")
     except Exception as exc:
-        logger.error("[process_avatar] path_to_url failed | %s", exc)
-        video_url = str(video_abs_path)
+        logger.error("[process_avatar] Cloudinary video upload failed | user=%s | %s",
+                     request.user.username, exc, exc_info=True)
+        messages.error(request, f"Video upload failed: {exc}. Please try again.")
+        return redirect("avatar_library")
 
-    audio_url = request.session.get("audio_url", "")
-
-    # ── Relative paths for DB ─────────────────
-    media_root = str(settings.MEDIA_ROOT).replace("\\", "/")
-
-    video_rel = str(video_abs_path).replace("\\", "/")
-    if video_rel.startswith(media_root):
-        video_rel = video_rel[len(media_root):].lstrip("/")
-
-    audio_rel = str(request.session.get("audio_abs_path", "")).replace("\\", "/")
-    if audio_rel.startswith(media_root):
-        audio_rel = audio_rel[len(media_root):].lstrip("/")
-
+    audio_url  = request.session.get("audio_url", "")
     total_secs = round(time.perf_counter() - t0, 2)
 
-    # ── Save successful record ────────────────
+    # ── Save to DB — store full Cloudinary URLs ──
     VideoGeneration.objects.create(
         user        = request.user,
         language    = language,
         input_text  = text,
-        audio_file  = audio_rel,
-        video_file  = video_rel,
+        audio_file  = audio_url,   # Cloudinary URL
+        video_file  = video_url,   # Cloudinary URL
         avatar      = avatar_fk,
         avatar_name = avatar_name,
         status      = "done",
@@ -795,5 +836,5 @@ def process_avatar(request):
         "video_path":  video_url,
         "audio_path":  audio_url,
         "avatar_name": avatar_name,
-        "avatar":      avatar_fk,   # None for user-avatars
+        "avatar":      avatar_fk,
     })
