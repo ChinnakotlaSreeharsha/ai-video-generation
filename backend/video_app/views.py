@@ -629,12 +629,33 @@ def generate_audio(request):
         messages.error(request, f"Audio generation failed: {exc}")
         return redirect("dashboard")
 
+    # ── Resolve audio path to absolute ───────
+    # generate_tts may return a relative path like /outputs/audio/xxx.mp3
+    # We need the full absolute path for Cloudinary to read the file.
+    audio_abs_path_str = str(audio_abs_path)
+    if not os.path.isabs(audio_abs_path_str) or not os.path.exists(audio_abs_path_str):
+        # Try resolving against MEDIA_ROOT
+        media_root = str(settings.MEDIA_ROOT)
+        candidate  = os.path.join(media_root, audio_abs_path_str.lstrip("/"))
+        if os.path.exists(candidate):
+            audio_abs_path_str = candidate
+        else:
+            # Strip leading /outputs/ prefix if present and try again
+            stripped = audio_abs_path_str.lstrip("/")
+            if stripped.startswith("outputs/"):
+                stripped = stripped[len("outputs/"):]
+            candidate2 = os.path.join(media_root, stripped)
+            if os.path.exists(candidate2):
+                audio_abs_path_str = candidate2
+
+    logger.info("[generate_audio] resolved audio path: %s", audio_abs_path_str)
+
     # ── Upload audio to Cloudinary ────────────
     # NOTE: Cloudinary uses resource_type="video" for audio files (mp3/wav etc.)
     try:
         t_up      = time.perf_counter()
         audio_url = _upload_local_file_to_cloudinary(
-            str(audio_abs_path),
+            audio_abs_path_str,
             resource_type="video",
             folder="stackly/audio",
         )
@@ -648,7 +669,7 @@ def generate_audio(request):
     # ── Save to session ───────────────────────
     request.session["text"]           = text
     request.session["language"]       = language
-    request.session["audio_abs_path"] = str(audio_abs_path)  # local path for pipeline
+    request.session["audio_abs_path"] = audio_abs_path_str   # resolved absolute path for pipeline
     request.session["audio_url"]      = audio_url            # Cloudinary URL for browser
     request.session["avatar_id"]      = avatar_id
     request.session["avatar_type"]    = avatar_type
@@ -798,11 +819,27 @@ def process_avatar(request):
             f"Video generation failed: {exc}. Please try again.")
         return redirect("avatar_library")
 
+    # ── Resolve video path to absolute ───────
+    video_abs_path_str = str(video_abs_path)
+    if not os.path.isabs(video_abs_path_str) or not os.path.exists(video_abs_path_str):
+        media_root = str(settings.MEDIA_ROOT)
+        candidate  = os.path.join(media_root, video_abs_path_str.lstrip("/"))
+        if os.path.exists(candidate):
+            video_abs_path_str = candidate
+        else:
+            stripped = video_abs_path_str.lstrip("/")
+            if stripped.startswith("outputs/"):
+                stripped = stripped[len("outputs/"):]
+            candidate2 = os.path.join(media_root, stripped)
+            if os.path.exists(candidate2):
+                video_abs_path_str = candidate2
+    logger.info("[process_avatar] resolved video path: %s", video_abs_path_str)
+
     # ── Upload video to Cloudinary ────────────
     try:
         t_up      = time.perf_counter()
         video_url = _upload_local_file_to_cloudinary(
-            str(video_abs_path),
+            video_abs_path_str,
             resource_type="video",
             folder="stackly/videos",
         )
